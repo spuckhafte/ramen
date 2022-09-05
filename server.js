@@ -91,9 +91,14 @@ client.on('interactionCreate', async interaction => {
                 }
             ])
 
-            interaction.reply({
+            await interaction.channel.send({
+                content: `<@${interaction.user.id}>`,
                 embeds: [embed]
             })
+            await interaction.reply({
+                content: 'Currently reminders only work for **missions** and **reports**.',
+                ephemeral: true
+            });
         } else { // only ready cds
             const user = await User.findOne({ id: interaction.user.id });
             if (!user) {
@@ -113,9 +118,15 @@ client.on('interactionCreate', async interaction => {
 
             embed.description = ready;
 
-            interaction.reply({
+            await interaction.channel.send({
+                content: `<@${interaction.user.id}>`,
                 embeds: [embed]
             })
+
+            await interaction.reply({
+                content: 'Currently reminders only work for **missions** and **reports**.',
+                ephemeral: true
+            });
         }
     }
 })
