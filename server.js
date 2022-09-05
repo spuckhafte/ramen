@@ -26,20 +26,7 @@ const Timer = {
 }
 
 client.once('ready', () => {
-    console.log('Ready!')
-
-    const guild = client.guilds.cache.get('1008657622691479633');
-    let commands = guild.commands;
-
-    commands.create({
-        name: 'cd',
-        description: 'Shows you cooldowns for various tasks',
-        options: [{
-            name: 'ready',
-            description: 'will only show you the ready tasks',
-            type: "BOOLEAN",
-        }]
-    });
+    console.log('Ready!');
 });
 
 client.on('messageCreate', async msg => {
