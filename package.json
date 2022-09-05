@@ -1,0 +1,17 @@
+{
+  "name": "ramen",
+  "version": "1.0.0",
+  "description": "",
+  "main": "server.js",
+  "scripts": {
+    "start": "nodemon server.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "discord.js": "^13.10.3",
+    "mongoose": "^6.5.4"
+  },
+  "type": "module"
+}

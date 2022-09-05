@@ -1,0 +1,24 @@
+import mongoose from 'mongoose';
+
+const userSchema = new mongoose.Schema({
+    username: String,
+    id: String,
+    reminder: {
+        mission: Number,
+        report: Number,
+        tower: Number,
+        adventure: Number,
+        daily: Number,
+        weekly: Number
+    },
+    stats: {
+        missions: Number,
+        reports: Number,
+        towers: Number,
+        adventures: Number
+    }
+});
+
+const User = mongoose.model("user", userSchema);
+
+export default User;
