@@ -17,12 +17,12 @@ const client = new Discord.Client({
 });
 
 const Timer = {
-    mission: 60010,
-    report: 420010,
-    tower: 600010,
-    adventure: 1800000,
-    daily: 86400000,
-    weekly: 604800000
+    mission: 59990,
+    report: 599990,
+    tower: 599990,
+    adventure: 1799990,
+    daily: 86399990,
+    weekly: 604799990
 }
 
 client.once('ready', () => {
