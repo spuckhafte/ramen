@@ -12,5 +12,6 @@ Utility for **Naruto Botto**.
 
 ## Upcoming
 1. Shows you online users, playing NB. (*you can also hide from coming into this list*)
-2. Generates a CSV file for your list of ninjas.
-3. Shows your total missions, reports etc done (*since when you came into notice of RAMEN*).
+2. Generates a CSV file for your list of ninjas. (*CSV file can be viewed as a spreadsheet in desktop or on browser*)
+3. Shows your total missions, reports etc done (*since when you came into notice of RAMEN*).<br>
+*...and much more*
