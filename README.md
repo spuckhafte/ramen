@@ -1,6 +1,8 @@
 # ramen
 
-Utility for **Naruto Botto** :)
+Utility for **Naruto Botto**.
+
+### DOES not VIOLATES nb's TOS :)
 
 # Features
 1. Slash only.
