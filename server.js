@@ -4,6 +4,7 @@ import mongoose from 'mongoose';
 import User from './schema/User.js';
 
 import remind from './commands/remind.js';
+import balancePlanning from './commands/balancePlanning.js'
 
 mongoose.connect(Details.DB_URL);
 
@@ -29,10 +30,19 @@ client.once('ready', () => {
     console.log('Ready!');
 });
 
+client.on('messageReactionAdd', async (rxn, user) => {
+    balancePlanning(rxn, user, client, MessageEmbed);
+});
+
 client.on('messageCreate', async msg => {
     if (msg.author.id === '770100332998295572') {
         let botMsg = msg.embeds[0];
         if (!botMsg || !botMsg.title) return;
+
+        if (botMsg.title.includes('balance')) {
+            if (!botMsg.footer || !botMsg.footer.text.includes('earned lifetime')) return;
+            await msg.react('💰');
+        }
 
         if (botMsg.title.includes('rank mission')) {
             const userId = botMsg.footer.iconURL.split('/avatars/')[1].split('/')[0];
