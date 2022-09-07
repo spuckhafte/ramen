@@ -7,7 +7,8 @@ Utility for **Naruto Botto**.
 # Features
 1. Slash only.
 1. Reminds you for your tasks.*
-2. Show you the cooldowns for your tasks.*<br><br>
+2. Show you the cooldowns for your tasks.*
+4. Plans your balance, just react to: *n balance*.<br><br>
 **both features are currently only for missions and reports*
 
 ## Upcoming
