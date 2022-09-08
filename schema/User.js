@@ -16,6 +16,11 @@ const userSchema = new mongoose.Schema({
         reports: Number,
         towers: Number,
         adventures: Number
+    },
+    extras: {
+        hide: Boolean,
+        lastCsv: Number,
+        lastOnline: Number
     }
 });
 
