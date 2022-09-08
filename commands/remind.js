@@ -45,6 +45,7 @@ export default async (User, botMsg, username, userid, type) => {
         if (typeTimerExpired) {
 
             user.reminder[type] = Date.now();
+            user.stats[type + 's'] = parseInt(user.stats[type + 's']) + 1
             user.save();
 
             setTimeout(async () => {
