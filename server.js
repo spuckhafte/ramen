@@ -1,4 +1,4 @@
-import Discord, { Intents, MessageEmbed } from 'discord.js';
+import Discord, { Intents, MessageActionRow, MessageButton, MessageEmbed } from 'discord.js';
 import Details from './secret.js'
 import mongoose from 'mongoose';
 import User from './schema/User.js';
@@ -7,6 +7,7 @@ import remind from './commands/remind.js';
 import balancePlanning from './commands/balancePlanning.js'
 import cd from './commands/cd.js'
 import online from './commands/online.js'
+import help from './commands/help.js'
 
 mongoose.connect(Details.DB_URL);
 
@@ -70,6 +71,10 @@ client.on('interactionCreate', async interaction => {
 
     if (commandName === 'hide') {
         online.hideOnline(options, interaction, User);
+    }
+
+    if (commandName === 'help') {
+        help(interaction, MessageEmbed, MessageActionRow, MessageButton);
     }
 })
 
