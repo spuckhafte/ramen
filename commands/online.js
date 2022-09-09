@@ -1,4 +1,4 @@
-async function setOnline(botMsg, User, msg, interaction) {
+async function setOnline(botMsg, User, msg) {
     const userid = botMsg.footer.iconURL.split('/avatars/')[1].split('/')[0];
     const userData = await User.findOne({ id: userid });
     if (!userData) return;
