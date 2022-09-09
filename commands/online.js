@@ -1,13 +1,8 @@
-async function setOnline(botMsg, User, msg) {
+async function setOnline(botMsg, User, msg, interaction) {
     const userid = botMsg.footer.iconURL.split('/avatars/')[1].split('/')[0];
     const userData = await User.findOne({ id: userid });
-    if (!userData) {
-        interaction.reply({
-            content: '**You are not registered.**\nDo a `mission` or `report` to continue...',
-            ephemeral: true
-        });
-        return;
-    }
+    if (!userData) return;
+
     if (!userData.extras || Object.keys(userData.extras).length === 0 || !userData.extras.hide) {
         userData.extras = {
             hide: false,
