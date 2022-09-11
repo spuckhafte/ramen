@@ -2,6 +2,8 @@
 
 Utility for **Naruto Botto**.
 
+**Official Server:** https://discord.gg/eEeaExspU8
+
 ### DOES not VIOLATES nb's TOS :)
 
 # Features
