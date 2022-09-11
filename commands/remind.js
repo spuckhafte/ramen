@@ -41,7 +41,7 @@ export default async (User, botMsg, username, userid, type) => {
         }, Timer[type]);
 
     } else {
-        if (!botMsg.guild.me.permissionsIn(msg.channel).has('SEND_MESSAGES')) return;
+        if (!botMsg.guild.me.permissionsIn(botMsg.channel).has('SEND_MESSAGES')) return;
         const user = (await User.where('id').equals(userid))[0]
         const typeTimerExpired = expired(user.reminder[type], type);
 
