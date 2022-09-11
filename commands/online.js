@@ -28,11 +28,12 @@ async function showOnline(interaction, User, MessageEmbed) {
     }
     const lastOnlineTimeStamp = Date.now() - 60000;
     const users = await User.where('extras.lastOnline').gt(lastOnlineTimeStamp);
+    const total = users.length;
     const usernames = users.map(usr => {
         if (!usr.extras.hide) return `**${usr.username}**`;
     }).join('\n');
     const embed = new MessageEmbed()
-        .setTitle('Active Users')
+        .setTitle(`Active Users - ${total}`)
         .setDescription(usernames)
         .setFooter({
             text: '/hide - removes you from this list'

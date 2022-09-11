@@ -34,11 +34,14 @@ export default async (User, botMsg, username, userid, type) => {
         newUser.stats[type + 's'] = 1
         newUser.save();
 
+        if (!botMsg.guild.me.permissionsIn(msg.channel).has('SEND_MESSAGES')) return;
+
         setTimeout(async () => {
             await botMsg.channel.send(`<@${userid}> your **${type}** is ready!`);
         }, Timer[type]);
 
     } else {
+        if (!botMsg.guild.me.permissionsIn(msg.channel).has('SEND_MESSAGES')) return;
         const user = (await User.where('id').equals(userid))[0]
         const typeTimerExpired = expired(user.reminder[type], type);
 
