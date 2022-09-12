@@ -1,18 +1,25 @@
 async function setOnline(botMsg, User, msg) {
-    const userid = botMsg.footer.iconURL.split('/avatars/')[1].split('/')[0];
-    const userData = await User.findOne({ id: userid });
-    if (!userData) return;
+    try {
+        const userid = botMsg.footer.iconURL.split('/avatars/')[1].split('/')[0];
+        const userData = await User.findOne({ id: userid });
+        if (!userData) return;
 
-    if (!userData.extras || Object.keys(userData.extras).length === 0 || !userData.extras.hide) {
-        userData.extras = {
-            hide: false,
-            lastCsv: 0,
-            lastOnline: msg.createdTimestamp
+        if (!userData.extras || Object.keys(userData.extras).length === 0 || !userData.extras.hide) {
+            userData.extras = {
+                hide: false,
+                lastCsv: 0,
+                lastOnline: msg.createdTimestamp
+            }
+            await userData.save();
+        } else {
+            userData.extras = { ...userData.extras, lastOnline: msg.createdTimestamp }
+            await userData.save();
         }
-        await userData.save();
-    } else {
-        userData.extras = { ...userData.extras, lastOnline: msg.createdTimestamp }
-        await userData.save();
+    } catch (e) {
+        console.log(botMsg.description);
+        console.log(botMsg.footer);
+        console.log(botMsg.title);
+        throw new Error(e);
     }
 }
 

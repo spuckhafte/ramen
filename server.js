@@ -1,4 +1,4 @@
-import Discord, { Intents, MessageActionRow, MessageButton, MessageEmbed } from 'discord.js';
+import Discord, { Intents, MessageActionRow, MessageButton, MessageEmbed, MessageSelectMenu, SelectMenuInteraction } from 'discord.js';
 import Details from './secret.js'
 import mongoose from 'mongoose';
 import User from './schema/User.js';
@@ -8,6 +8,7 @@ import balancePlanning from './commands/balancePlanning.js'
 import cd from './commands/cd.js'
 import online from './commands/online.js'
 import help from './commands/help.js'
+import lb from "./commands/lb.js";
 
 mongoose.connect(Details.DB_URL);
 
@@ -16,7 +17,8 @@ const client = new Discord.Client({
         Intents.FLAGS.GUILD_MESSAGES,
         Intents.FLAGS.GUILD_MESSAGE_REACTIONS,
         Intents.FLAGS.GUILD_EMOJIS_AND_STICKERS,
-        Intents.FLAGS.GUILDS
+        Intents.FLAGS.GUILDS,
+        Intents.FLAGS.GUILD_MEMBERS
     ]
 });
 
@@ -58,25 +60,38 @@ client.on('messageCreate', async msg => {
 });
 
 client.on('interactionCreate', async interaction => {
-    if (!interaction.isCommand()) return;
+    if (interaction.isCommand()) {
 
-    const { commandName, options } = interaction;
+        const { commandName, options } = interaction;
 
-    if (commandName === 'cd') {
-        cd(options, interaction, MessageEmbed, User);
-    };
+        if (commandName === 'lb') {
+            lb.firstLb(options, User, interaction, MessageEmbed, MessageActionRow, MessageSelectMenu);
+        }
+        if (commandName === 'cd') {
+            cd(options, interaction, MessageEmbed, User);
+        };
 
-    if (commandName === 'online') {
-        online.showOnline(interaction, User, MessageEmbed);
+        if (commandName === 'online') {
+            online.showOnline(interaction, User, MessageEmbed);
+        }
+
+        if (commandName === 'hide') {
+            online.hideOnline(options, interaction, User);
+        }
+
+        if (commandName === 'help') {
+            help(interaction, MessageEmbed, MessageActionRow, MessageButton);
+        }
     }
 
-    if (commandName === 'hide') {
-        online.hideOnline(options, interaction, User);
+    if (interaction.isSelectMenu()) {
+        if (interaction.customId == 'leaderboard-page') {
+            lb.managePageChange(interaction, User, MessageEmbed);
+        }
     }
 
-    if (commandName === 'help') {
-        help(interaction, MessageEmbed, MessageActionRow, MessageButton);
-    }
+
 })
+
 
 client.login(Details.TOKEN);
