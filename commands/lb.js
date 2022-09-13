@@ -9,14 +9,16 @@ async function firstLb(options, User, interaction, MessageEmbed, MessageActionRo
     if (scope == 'local') {
         allUsers = allUsers.filter(usr => allMemberId.includes(usr.id));
     };
-
     const idAndTaks = decreasing(allUsers.map(usr => { return { id: usr.id, task: usr.stats[lbFor + 's'] } }), 'task');
+    const pgForUser = Math.ceil((idAndTaks.findIndex(usr => usr.id == interaction.user.id) + 1) / 10);
+
     let desc = ''
     for (let objI in idAndTaks) {
         if (objI == 10) break;
         const obj = idAndTaks[objI];
         const username = (await User.where('id').equals(obj.id))[0].username.replace('_', '\_');
-        let showName = username + (dev ? `(${obj.id})` : '');
+
+        let showName = (obj.id == interaction.user.id ? `**${username}**` : username) + (dev ? `(${obj.id})` : '');
         desc += `\`#${parseInt(objI) + 1}\` ${showName} - ${obj.task} ${lbFor + 's'}\n`;
     }
     const embed = new MessageEmbed()
@@ -46,8 +48,12 @@ async function firstLb(options, User, interaction, MessageEmbed, MessageActionRo
         )
 
     await interaction.reply({
+        content: `<@${interaction.user.id}> you can be found on **Page ${pgForUser}**`,
         embeds: [embed],
-        components: [action]
+        components: [action],
+        allowedMentions: {
+            users: false
+        }
     });
 }
 
@@ -71,6 +77,7 @@ async function managePageChange(interaction, User, MessageEmbed) {
         allUsers = allUsers.filter(usr => allMemberId.includes(usr.id));
     };
     const idAndTaks = decreasing(allUsers.map(usr => { return { id: usr.id, task: usr.stats[task + 's'] } }), 'task');
+    const pgForUser = Math.ceil((idAndTaks.findIndex(usr => usr.id == interaction.user.id) + 1) / 10);
 
     if (end > idAndTaks.length) end = idAndTaks.length;
 
@@ -79,7 +86,7 @@ async function managePageChange(interaction, User, MessageEmbed) {
     while (i <= end) {
         const obj = idAndTaks[i - 1];
         const username = (await User.where('id').equals(obj.id))[0].username.replace('_', '\_');
-        let showName = username + (isDev ? `(${obj.id})` : '');
+        let showName = (obj.id == interaction.user.id ? `**${username}**` : username) + (isDev ? `(${obj.id})` : '');
         desc += `\`#${i}\` ${showName} - ${obj.task} ${task + 's'}\n`;
         i += 1;
     };
@@ -91,13 +98,17 @@ async function managePageChange(interaction, User, MessageEmbed) {
         .setFooter(`${page} of ${Math.ceil(idAndTaks.length / 10)}`);
 
     await interaction.followUp({
-        embeds: [embed]
+        content: `<@${interaction.user.id}> you can be found on **Page ${pgForUser + 1}**`,
+        embeds: [embed],
+        allowedMentions: {
+            users: false
+        }
     });
 }
 
 
 
-function decreasing(array = [], task = '') {
+function decreasing(array = [], task = '', userid) {
     let sortedArray = [];
     for (let elementIndex in array) {
         const element = array[elementIndex];
