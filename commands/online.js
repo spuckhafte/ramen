@@ -19,7 +19,6 @@ async function setOnline(botMsg, User, msg) {
         console.log(botMsg.description);
         console.log(botMsg.footer);
         console.log(botMsg.title);
-        throw new Error(e);
     }
 }
 

@@ -78,7 +78,6 @@ async function managePageChange(interaction, User, MessageEmbed, MessageActionRo
         allUsers = allUsers.filter(usr => allMemberId.includes(usr.id));
     };
     const idAndTaks = decreasing(allUsers.map(usr => { return { id: usr.id, task: usr.stats[task + 's'] } }), 'task');
-    const pgForUser = Math.ceil((idAndTaks.findIndex(usr => usr.id == interaction.user.id) + 1) / 10);
 
     if (end > idAndTaks.length) end = idAndTaks.length;
 
@@ -111,12 +110,12 @@ async function managePageChange(interaction, User, MessageEmbed, MessageActionRo
     const action = new MessageActionRow()
         .addComponents(
             new MessageSelectMenu()
-                .setCustomId('leaderboard-pagee')
+                .setCustomId('leaderboard-page')
                 .setPlaceholder(`Page ${page}`)
                 .setMinValues(1)
                 .setMaxValues(1)
                 .addOptions(menuOptions)
-        )
+        );
 
     await interaction.message.edit({
         content: interaction.message.content,
