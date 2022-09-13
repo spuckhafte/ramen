@@ -86,7 +86,7 @@ client.on('interactionCreate', async interaction => {
 
     if (interaction.isSelectMenu()) {
         if (interaction.customId == 'leaderboard-page') {
-            lb.managePageChange(interaction, User, MessageEmbed);
+            lb.managePageChange(interaction, User, MessageEmbed, MessageActionRow, MessageSelectMenu);
         }
     }
 

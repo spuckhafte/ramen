@@ -42,7 +42,7 @@ async function firstLb(options, User, interaction, MessageEmbed, MessageActionRo
         .addComponents(
             new MessageSelectMenu()
                 .setCustomId('leaderboard-page')
-                .setPlaceholder('1')
+                .setPlaceholder('Page 1')
                 .setMinValues(1)
                 .setMaxValues(1)
                 .addOptions(menuOptions)
@@ -60,7 +60,8 @@ async function firstLb(options, User, interaction, MessageEmbed, MessageActionRo
 
 
 
-async function managePageChange(interaction, User, MessageEmbed) {
+async function managePageChange(interaction, User, MessageEmbed, MessageActionRow, MessageSelectMenu) {
+    await interaction.deferUpdate();
     const page = parseInt(interaction.values[0])
     const title = interaction.message.embeds[0].title;
     const task = title.split(' ')[1].toLowerCase();
@@ -97,9 +98,30 @@ async function managePageChange(interaction, User, MessageEmbed) {
         .setDescription(desc)
         .setFooter(`${page} of ${Math.ceil(idAndTaks.length / 10)}`);
 
+    const menuOptions = []
+    i = 1;
+    while (i <= Math.ceil(idAndTaks.length / 10)) {
+        menuOptions.push({
+            label: `Page ${i}`,
+            value: `${i}`
+        })
+        i += 1;
+    }
+
+    const action = new MessageActionRow()
+        .addComponents(
+            new MessageSelectMenu()
+                .setCustomId('leaderboard-pagee')
+                .setPlaceholder(`Page ${page}`)
+                .setMinValues(1)
+                .setMaxValues(1)
+                .addOptions(menuOptions)
+        )
+
     await interaction.message.edit({
         content: interaction.message.content,
         embeds: [embed],
+        components: [action],
         allowedMentions: {
             users: false
         }
