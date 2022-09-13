@@ -61,7 +61,6 @@ async function firstLb(options, User, interaction, MessageEmbed, MessageActionRo
 
 
 async function managePageChange(interaction, User, MessageEmbed) {
-    await interaction.deferReply();
     const page = parseInt(interaction.values[0])
     const title = interaction.message.embeds[0].title;
     const task = title.split(' ')[1].toLowerCase();
@@ -98,8 +97,8 @@ async function managePageChange(interaction, User, MessageEmbed) {
         .setDescription(desc)
         .setFooter(`${page} of ${Math.ceil(idAndTaks.length / 10)}`);
 
-    await interaction.followUp({
-        content: `<@${interaction.user.id}> you can be found on **Page ${pgForUser}**`,
+    await interaction.message.edit({
+        content: interaction.message.content,
         embeds: [embed],
         allowedMentions: {
             users: false
