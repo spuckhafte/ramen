@@ -37,7 +37,7 @@ export default async (User, botMsg, username, userid, type) => {
         if (!botMsg.guild.me.permissionsIn(botMsg.channel).has('SEND_MESSAGES')) return;
 
         setTimeout(async () => {
-            await botMsg.channel.send(`<@${userid}> your **${type}** is ready!`);
+            if (botMsg.channel) await botMsg.channel.send(`<@${userid}> your **${type}** is ready!`);
         }, Timer[type]);
 
     } else {
@@ -52,7 +52,7 @@ export default async (User, botMsg, username, userid, type) => {
             user.save();
 
             setTimeout(async () => {
-                await botMsg.channel.send(`<@${userid}> your **${type}** is ready!`);
+                if (botMsg.channel) await botMsg.channel.send(`<@${userid}> your **${type}** is ready!`);
             }, Timer[type]);
 
         } else console.log(`${type} active`)
