@@ -1,4 +1,5 @@
 async function firstLb(options, User, interaction, MessageEmbed, MessageActionRow, MessageSelectMenu) {
+    await interaction.deferReply();
     let lbFor = options.getString('for', true);
     const scope = options.getString('scope', true);
     const dev = options.getBoolean('dev', false);
