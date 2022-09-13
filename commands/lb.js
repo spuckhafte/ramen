@@ -48,7 +48,7 @@ async function firstLb(options, User, interaction, MessageEmbed, MessageActionRo
                 .addOptions(menuOptions)
         )
 
-    await interaction.reply({
+    await interaction.editReply({
         content: `<@${interaction.user.id}> you can be found on **Page ${pgForUser}**`,
         embeds: [embed],
         components: [action],
