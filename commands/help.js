@@ -6,6 +6,7 @@ export default async (interaction, MessageEmbed, MessageActionRow, MessageButton
             { name: '`online` **- lists all the active users**', value: 'Options: *none*' },
             { name: '`hide` **- hides you from the list of active users, even if you are active**', value: 'Options: *state*' },
             { name: '`cd` **- shows you your cooldowns for various tasks**', value: 'Options: *ready*' },
+            { name: '`lb` **- shows you the leaderboard of missions and reports**', value: 'Options: *for*, *scope*, *dev (optional)*' },
             { name: '`help` **- shows you this guide**', value: 'Options: *none*' },
             { name: '=================\nOthers', value: '1. Reacting to your NB balance plans it out for you, *try it!*' }
         )
