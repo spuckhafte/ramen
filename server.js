@@ -55,7 +55,7 @@ client.on('messageCreate', async msg => {
         if (botMsg.title.includes('report info')) {
             if (!botMsg.footer.iconURL) return;
             const userId = botMsg.footer.iconURL.split('/avatars/')[1].split('/')[0];
-            const username = botMsg.title.toLowerCase().replace(/'s report info/, '');
+            const username = botMsg.title.toLowerCase().replace('s report info', '');
             remind(User, msg, username, userId, 'report');
         }
     }
