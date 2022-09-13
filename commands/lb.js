@@ -99,7 +99,7 @@ async function managePageChange(interaction, User, MessageEmbed) {
         .setFooter(`${page} of ${Math.ceil(idAndTaks.length / 10)}`);
 
     await interaction.followUp({
-        content: `<@${interaction.user.id}> you can be found on **Page ${pgForUser + 1}**`,
+        content: `<@${interaction.user.id}> you can be found on **Page ${pgForUser}**`,
         embeds: [embed],
         allowedMentions: {
             users: false
