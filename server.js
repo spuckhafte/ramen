@@ -31,6 +31,17 @@ client.on('messageReactionAdd', async (rxn, user) => {
     balancePlanning(rxn, user, client, MessageEmbed);
 });
 
+const Timer = {
+    mission: 59990,
+    report: 599990,
+    tower: 21599990,
+    adventure: 1799990,
+    daily: 86399990,
+    weekly: 604799990
+}
+
+const reminderOn = {}
+
 client.on('messageCreate', async msg => {
     if (msg.author.id === '770100332998295572') {
         let botMsg = msg.embeds[0];
@@ -48,15 +59,89 @@ client.on('messageCreate', async msg => {
         if (botMsg.title.includes('rank mission')) {
             if (!botMsg.footer.iconURL) return;
             const userId = botMsg.footer.iconURL.split('/avatars/')[1].split('/')[0];
+            storeReminder(userId, 'mission')
             const username = botMsg.title.toLowerCase().replace(/'s ([a-z]+) rank mission/, '');
-            remind(User, msg, username, userId, 'mission');
+            remind(User, msg, msg.createdTimestamp, username, userId, 'mission');
         }
 
         if (botMsg.title.includes('report info')) {
             if (!botMsg.footer.iconURL) return;
             const userId = botMsg.footer.iconURL.split('/avatars/')[1].split('/')[0];
-            const username = botMsg.title.toLowerCase().replace('s report info', '');
-            remind(User, msg, username, userId, 'report');
+            storeReminder(userId, 'report')
+            const username = botMsg.title.toLowerCase().replace('\'s report info', '');
+            remind(User, msg, msg.createdTimestamp, username, userId, 'report');
+        }
+    }
+
+    if (!msg.author.bot) {
+        if (msg.content.startsWith('<@770100332998295572> tow') || msg.content.startsWith('<@770100332998295572> tower')) {
+            const filter = m => {
+                if (m.author.id != '770100332998295572' || m.embeds[0] || !m.content) return false;
+                if (!m.content.toLowerCase().includes(msg.author.username.toLowerCase())) return false;
+                return true;
+            };
+            const previousTime = (await User.where('id').equals(msg.author.id))[0].reminder.tower;
+            if (Date.now() - previousTime < Timer['tower']) if (reminderActive(msg.author.id, 'tower')) return;
+
+            const collector = msg.channel.createMessageCollector({ filter, time: 1500 });
+            collector.on('end', async collection => {
+                if (collection.size == 0) return;
+
+                let nbMsg = collection.first();
+                if (nbMsg.content.startsWith(`**${msg.author.username}** defeated an enemy`)) {
+                    storeReminder(msg.author.id, 'tower');
+                    remind(User, nbMsg, nbMsg.createdTimestamp, msg.author.username, msg.author.id, 'tower');
+                };
+            });
+        }
+
+
+        if (msg.content.trim() == '<@770100332998295572> cd' || msg.content.trim() == '<@770100332998295572> cooldown') {
+            const filter = m => {
+                if (m.author.id != '770100332998295572' || !m.embeds[0] || !m.embeds[0].title) return false;
+                if (!m.embeds[0].title.includes(msg.author.username) || !m.embeds[0].title.toLowerCase().includes('cooldowns')) return false;
+                return true;
+            };
+            const collector = msg.channel.createMessageCollector({ filter, time: 1000 });
+
+            collector.on('end', async collected => {
+                const fields = collected.toJSON()[0].embeds[0].fields;
+                fields.pop();
+                const tasksToBeReminded = {}
+                fields.forEach((field, i) => {
+                    const tasks = field.value.split('\n');
+                    for (let task of tasks) {
+                        if (task.includes('white_check_mark')) continue;
+                        const reqTask = task.split('--- ')[1].split(' (')[0].toLowerCase().trim();
+                        if (!Timer[reqTask]) continue;
+
+                        const timeLeft = timeToMs(task.split('--- ')[1].split(' (')[1].split(')')[0]);
+                        tasksToBeReminded[reqTask] = timeLeft;
+                    }
+                })
+                if (Object.keys(tasksToBeReminded).length == 0) return;
+                let send = [];
+                let user = (await User.where('id').equals(msg.author.id))[0]
+                if (user == null || user == undefined) {
+                    await msg.reply({
+                        content: '**You are not registered.**\nDo a `mission` or `report` to continue...',
+                        ephemeral: true
+                    })
+                    return;
+                };
+                for (let task of Object.keys(tasksToBeReminded)) {
+                    const previousTime = (await User.where('id').equals(msg.author.id))[0].reminder[task];
+                    if (Date.now() - previousTime < Timer[task]) if (reminderActive(msg.author.id, task)) continue;
+
+                    const timeLeft = tasksToBeReminded[task]
+                    const startTime = (Date.now() - (Timer[task] - timeLeft)) + 1000;
+                    storeReminder(msg.author.id, task);
+                    await remind(User, msg, startTime, msg.author.username, msg.author.id, task, timeLeft + 1000, true);
+                    send.push(`**${task}**`)
+                };
+                const msgg = `${msg.author} reminders added for ${send.join(', ')}`;
+                if (send.length != 0) await msg.channel.send(msgg ? msgg : '--err--')
+            })
         }
     }
 });
@@ -70,7 +155,7 @@ client.on('interactionCreate', async interaction => {
             lb.firstLb(options, User, interaction, MessageEmbed, MessageActionRow, MessageSelectMenu);
         }
         if (commandName === 'cd') {
-            cd(options, interaction, MessageEmbed, User);
+            cd(options, interaction, MessageEmbed, User, reminderOn);
         };
 
         if (commandName === 'online') {
@@ -91,9 +176,47 @@ client.on('interactionCreate', async interaction => {
             lb.managePageChange(interaction, User, MessageEmbed, MessageActionRow, MessageSelectMenu);
         }
     }
-
-
 })
 
+
+function timeToMs(time = '') {
+    let days = 0, hours = 0, minutes = 0, seconds = 0
+    const arr = time.split(' ')
+    if (arr.length == 4) {
+        days = parseInt(arr[0].replace('d', ''));
+        arr.splice(0, 1);
+    }
+    if (arr.length >= 3) {
+        hours = parseInt(arr[0].replace('h', ''));
+        arr.splice(0, 1);
+    }
+    if (arr.length >= 2) {
+        minutes = parseInt(arr[0].replace('m', ''));
+        arr.splice(0, 1);
+    }
+    if (arr.length >= 1) seconds = parseInt(arr[0].replace('s', ''));
+
+    return ((days * 24 * 60 * 60 * 1000) + (hours * 60 * 60 * 1000) + (minutes * 60 * 1000) + (seconds * 1000));
+}
+
+function storeReminder(id, task) {
+    if (!reminderOn[id]) {
+        reminderOn[id] = {
+            mission: false,
+            report: false,
+            tower: false,
+            adventure: true,
+            daily: false,
+            weekly: false
+        };
+    };
+
+    reminderOn[id][task] = true;
+};
+
+function reminderActive(id, task) {
+    if (!reminderOn[id]) return false;
+    return reminderOn[id][task];
+}
 
 client.login(Details.TOKEN);
