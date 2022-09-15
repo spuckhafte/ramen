@@ -2,9 +2,9 @@ const Timer = {
     mission: 59990,
     report: 599990,
     tower: 21599990,
-    adventure: 1799990, // not correct
+    challenge: 1799990,
     daily: 86399990,
-    weekly: 604799990
+    weekly: 604799990,
 }
 
 export default async (options, interaction, MessageEmbed, User, reminderOn) => {
@@ -24,6 +24,8 @@ export default async (options, interaction, MessageEmbed, User, reminderOn) => {
         let activities = '';
         let others = ''
         Object.keys(user.reminder).forEach((type, i) => {
+            if (type == 'challenge') return;
+            if (i == 3) type = 'challenge';
             const taskReady = (Date.now() - user.reminder[type]) >= Timer[type];
             if (i <= 3) {
                 activities += (taskReady ? '✅'
@@ -96,7 +98,8 @@ function formatCountDown(initialTime, type) {
         report: 10,
         daily: 24,
         weekly: 7,
-        tower: 6
+        tower: 6,
+        challenge: 30
     }
 
     const milliSeconds = Date.now() - initialTime;
@@ -106,9 +109,10 @@ function formatCountDown(initialTime, type) {
     const seconds = (60 - (Math.floor(milliSeconds / 1000))) + 's';
     const minutes = `${Math.floor(full[type] - ((60 - parseInt(seconds)) / 60))}m ${60 - ((60 - parseInt(seconds)) % 60)}s`
     let hours = (full[type] - _hours) + 'hr';
-    const days = (full[type] - Math.floor(parseInt(milliSeconds / 1000) / 86400)) + 'd'
+    let days = (full[type] - Math.ceil(parseInt(milliSeconds / 1000) / 86400)) + 'd'
 
     if (hours == '0hr') hours = '< 1hr'
+    if (days == '0d') hours = '< 1d'
     return {
         seconds,
         minutes,

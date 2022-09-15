@@ -9,7 +9,8 @@ const userSchema = new mongoose.Schema({
         tower: Number,
         adventure: Number,
         daily: Number,
-        weekly: Number
+        weekly: Number,
+        challenge: Number
     },
     stats: {
         missions: Number,

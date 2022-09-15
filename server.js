@@ -35,7 +35,7 @@ const Timer = {
     mission: 59990,
     report: 599990,
     tower: 21599990,
-    adventure: 1799990,
+    challenge: 1799990,
     daily: 86399990,
     weekly: 604799990
 }
@@ -129,6 +129,10 @@ client.on('messageCreate', async msg => {
                     })
                     return;
                 };
+                if (!user.reminder.challenge) {
+                    user.reminder.challenge = 0;
+                    await user.save();
+                }
                 for (let task of Object.keys(tasksToBeReminded)) {
                     const previousTime = (await User.where('id').equals(msg.author.id))[0].reminder[task];
                     if (Date.now() - previousTime < Timer[task]) if (reminderActive(msg.author.id, task)) continue;
@@ -207,7 +211,8 @@ function storeReminder(id, task) {
             tower: false,
             adventure: true,
             daily: false,
-            weekly: false
+            weekly: false,
+            challenge: false
         };
     };
 

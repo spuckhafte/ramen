@@ -2,9 +2,9 @@ const Timer = {
     mission: 59990,
     report: 599990,
     tower: 21599990,
-    adventure: 1799990, // not correct
+    challenge: 1799990,
     daily: 86399990,
-    weekly: 604799990
+    weekly: 604799990,
 }
 
 export default async (User, botMsg, now, username, userid, type, _customTime, _force) => {

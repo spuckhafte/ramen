@@ -8,10 +8,12 @@ export default async (interaction, MessageEmbed, MessageActionRow, MessageButton
             { name: '`cd` **- shows you your cooldowns for various tasks**', value: 'Options: *ready*' },
             { name: '`lb` **- shows you the leaderboard of missions and reports**', value: 'Options: *for*, *scope*, *dev (optional)*' },
             { name: '`help` **- shows you this guide**', value: 'Options: *none*' },
-            { name: '=================\nOthers', value: '1. Reacting to your NB balance plans it out for you, *try it!*' }
+            { name: '=================\nOthers', 
+            value: '1. Reacting to your NB balance plans it out for you, *try it!*\n2. Add reminders using **n cd**' 
+        }
         )
         .setFooter({
-            text: 'Currently reminders only work for missions and reports.'
+            text: 'Reminders for daily, weekly and challenge can only be added using "n cd"'
         });
 
     const inviteAndUpvote = new MessageActionRow()
