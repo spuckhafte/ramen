@@ -51,6 +51,10 @@ client.on('messageCreate', async msg => {
 
         if (botMsg.title.includes('balance')) {
             if (!botMsg.footer || !botMsg.footer.text.includes('earned lifetime')) return;
+            if (!msg.guild.me.permissionsIn(msg.channel).has('ADD_REACTIONS')) {
+                await msg.channel.send('`Add Reaction` permission is **missing**')
+                return;
+            }
             await msg.react('💰');
         }
 
@@ -122,7 +126,10 @@ client.on('messageCreate', async msg => {
             const collector = msg.channel.createMessageCollector({ filter, time: 1000 });
 
             collector.on('end', async collected => {
-                const fields = collected.toJSON()[0].embeds[0].fields;
+                if (!collected.toJSON()[0]) return;
+                const embed = collected.toJSON()[0].embeds[0];
+                if (!embed) return;
+                const fields = embed.fields;
                 const tasksToBeReminded = {}
                 fields.forEach((field, i) => {
                     const tasks = field.value.split('\n');
