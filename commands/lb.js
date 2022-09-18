@@ -1,36 +1,41 @@
-async function firstLb(options, User, interaction, MessageEmbed, MessageActionRow, MessageSelectMenu) {
-    await interaction.deferReply();
+async function lb(options, User, interaction, MessageEmbed, MessageActionRow, MessageButton) {
     let lbFor = options.getString('for', true);
     const scope = options.getString('scope', true);
     const dev = options.getBoolean('dev', false);
 
-    let allUsers = await User.find({});
-    const allMemberId = (await interaction.guild.members.fetch()).toJSON().map(usr => usr.id);
+    await interaction.deferReply();
 
-    if (scope == 'local') {
-        allUsers = allUsers.filter(usr => allMemberId.includes(usr.id));
-    };
-    const idAndTaks = decreasing(allUsers.map(usr => { return { id: usr.id, task: usr.stats[lbFor + 's'] } }), 'task');
-    const pgForUser = Math.ceil((idAndTaks.findIndex(usr => usr.id == interaction.user.id) + 1) / 10);
+    let idAndTasks;
+    const prop = `stats.${lbFor}s`
+    const propobj = {}
+    propobj[prop] = -1;
+    if (scope == 'global') {
+        idAndTasks = await User.find({}, ['id', `stats.${lbFor}s`, 'username']).sort(propobj);
+    } else {
+        const serverMemIds = (await interaction.guild.members.fetch()).toJSON().map(usr => usr.id)
+        idAndTasks = (await User.find({}, ['id', `stats.${lbFor}s`, 'username']).sort(propobj)).filter(obj => serverMemIds.includes(obj.id));
+    }
 
-    let desc = ''
-    for (let objI in idAndTaks) {
+    const pgForUser = Math.ceil((idAndTasks.findIndex(usr => usr.id == interaction.user.id) + 1) / 10);
+
+    let desc = '';
+    for (let objI in idAndTasks) {
         if (objI == 10) break;
-        const obj = idAndTaks[objI];
-        const username = (await User.where('id').equals(obj.id))[0].username.replace('_', '\_');
+        const obj = idAndTasks[objI];
+        const username = obj.username;
 
         let showName = (obj.id == interaction.user.id ? `**${username}**` : username) + (dev ? `(${obj.id})` : '');
-        desc += `\`#${parseInt(objI) + 1}\` ${showName} - ${obj.task} ${lbFor + 's'}\n`;
+        desc += `\`#${parseInt(objI) + 1}\` ${showName} - ${obj.stats[`${lbFor}s`]} ${lbFor + 's'}\n`;
     }
     const embed = new MessageEmbed()
         .setTitle(`${scope.toUpperCase()} ${lbFor.toUpperCase()} LEADERBOARD ${dev ? ' -dev' : ''}`)
         .setColor('RANDOM')
         .setDescription(desc)
-        .setFooter(`1 of ${Math.ceil(idAndTaks.length / 10)}`)
+        .setFooter(`1 of ${Math.ceil(idAndTasks.length / 10)}`)
 
     const menuOptions = []
     let i = 1;
-    while (i <= Math.ceil(idAndTaks.length / 10)) {
+    while (i <= Math.ceil(idAndTasks.length / 10)) {
         menuOptions.push({
             label: `Page ${i}`,
             value: `${i}`
@@ -38,123 +43,89 @@ async function firstLb(options, User, interaction, MessageEmbed, MessageActionRo
         i += 1;
     }
 
-    const action = new MessageActionRow()
+    const row = new MessageActionRow()
         .addComponents(
-            new MessageSelectMenu()
-                .setCustomId('leaderboard-page')
-                .setPlaceholder('Page 1')
-                .setMinValues(1)
-                .setMaxValues(1)
-                .addOptions(menuOptions)
+            new MessageButton()
+                .setCustomId('show_prev_page')
+                .setLabel('Previous')
+                .setStyle('PRIMARY')
+        )
+        .addComponents(
+            new MessageButton()
+                .setCustomId('show_next_page')
+                .setLabel('Next')
+                .setStyle('SUCCESS')
         )
 
-    await interaction.editReply({
+    const msgSent = await interaction.editReply({
         content: `<@${interaction.user.id}> you can be found on **Page ${pgForUser}**`,
         embeds: [embed],
-        components: [action],
+        components: [row],
         allowedMentions: {
             users: false
         }
     });
-}
 
-
-
-async function managePageChange(interaction, User, MessageEmbed, MessageActionRow, MessageSelectMenu) {
-    await interaction.deferUpdate();
-    const page = parseInt(interaction.values[0])
-    const title = interaction.message.embeds[0].title;
-    const task = title.split(' ')[1].toLowerCase();
-    const scope = title.split(' ')[0].toLowerCase();
-    const isDev = title.includes('dev');
-
-    const start = (page - 1) * 10 + 1;
-    let end = start + 9;
-
-    let allUsers = await User.find({});
-    const allMemberId = (await interaction.guild.members.fetch()).toJSON().map(usr => usr.id);
-
-    if (scope == 'local') {
-        allUsers = allUsers.filter(usr => allMemberId.includes(usr.id));
-    };
-    const idAndTaks = decreasing(allUsers.map(usr => { return { id: usr.id, task: usr.stats[task + 's'] } }), 'task');
-
-    if (end > idAndTaks.length) end = idAndTaks.length;
-
-    let desc = '';
-    let i = start;
-    while (i <= end) {
-        const obj = idAndTaks[i - 1];
-        const username = (await User.where('id').equals(obj.id))[0].username.replace('_', '\_');
-        let showName = (obj.id == interaction.user.id ? `**${username}**` : username) + (isDev ? `(${obj.id})` : '');
-        desc += `\`#${i}\` ${showName} - ${obj.task} ${task + 's'}\n`;
-        i += 1;
-    };
-
-    const embed = new MessageEmbed()
-        .setTitle(title)
-        .setColor('RANDOM')
-        .setDescription(desc)
-        .setFooter(`${page} of ${Math.ceil(idAndTaks.length / 10)}`);
-
-    const menuOptions = []
-    i = 1;
-    while (i <= Math.ceil(idAndTaks.length / 10)) {
-        menuOptions.push({
-            label: `Page ${i}`,
-            value: `${i}`
-        })
-        i += 1;
+    const filter = btn => {
+        return btn.user.id == interaction.user.id && msgSent.id == btn.message.id;
     }
 
-    const action = new MessageActionRow()
-        .addComponents(
-            new MessageSelectMenu()
-                .setCustomId('leaderboard-page')
-                .setPlaceholder(`Page ${page}`)
-                .setMinValues(1)
-                .setMaxValues(1)
-                .addOptions(menuOptions)
-        );
+    const collector = interaction.channel.createMessageComponentCollector({ filter, time: 15 * 60 * 1000 });
+    collector.on('collect', async btn => {
+        btn.deferUpdate();
+        if (btn.customId != 'show_prev_page' && btn.customId != 'show_next_page') return;
+        const embed = btn.message.embeds[0]
+        const scope = embed.title.split(' ')[0].toLowerCase();
+        const task = embed.title.split(' ')[1].toLowerCase();
+        const isDev = embed.title.includes('dev');
 
-    await interaction.message.edit({
-        content: interaction.message.content,
-        embeds: [embed],
-        components: [action],
-        allowedMentions: {
-            users: false
-        }
-    });
+        const currentPage = embed.footer.text.split(' of')[0];
+        const finalPage = embed.footer.text.split('of ')[1];
+        if ((currentPage == 1 && btn.customId.includes('prev')) || (currentPage == finalPage && btn.customId.includes('next'))) return;
+
+        let page = parseInt(currentPage);
+        if (btn.customId.includes('next')) page += 1;
+        else page -= 1;
+
+        const start = (page - 1) * 10 + 1;
+        let end = start + 9;
+
+        let idAndTasks;
+        const prop = `stats.${task}s`
+        const propobj = {}
+        propobj[prop] = -1
+
+        if (scope == 'global') {
+            idAndTasks = await User.find({}, ['id', `stats.${task}s`, 'username']).sort(propobj);
+        } else {
+            const serverMemIds = (await interaction.guild.members.fetch()).toJSON().map(usr => usr.id)
+            idAndTasks = (await User.find({}, ['id', `stats.${task}s`, 'username']).sort(propobj)).filter(obj => serverMemIds.includes(obj.id));
+        };
+
+        if (end >= idAndTasks.length) end = idAndTasks.length;
+
+        let desc = '';
+        let i = start;
+        while (i <= end) {
+            const obj = idAndTasks[i - 1];
+            const username = obj.username;
+            let showName = (obj.id == interaction.user.id ? `**${username}**` : username) + (isDev ? `(${obj.id})` : '');
+            desc += `\`#${i}\` ${showName} - ${obj.stats[`${task}s`]} ${task + 's'}\n`;
+            i += 1;
+        };
+
+        const newEmbed = new MessageEmbed()
+            .setTitle(embed.title)
+            .setColor('RANDOM')
+            .setDescription(desc)
+            .setFooter(`${page} of ${Math.ceil(idAndTasks.length / 10)}`);
+
+        await interaction.editReply({
+            content: btn.message.content,
+            components: [row],
+            embeds: [newEmbed]
+        });
+    })
 }
 
-
-
-function decreasing(array = [], task = '', userid) {
-    let sortedArray = [];
-    for (let elementIndex in array) {
-        const element = array[elementIndex];
-        if (elementIndex == 0) {
-            sortedArray.push(element);
-            continue;
-        }
-
-        for (let i in sortedArray) {
-            if (element[task] > sortedArray[i][task]) {
-                const copyBefore = [...sortedArray];
-                const copyAfter = copyBefore.splice(i);
-                copyBefore.push(element);
-                sortedArray = copyBefore.concat(copyAfter);
-                break;
-            }
-            if (i == sortedArray.length - 1) sortedArray.push(element);
-            continue;
-        }
-    }
-    return sortedArray;
-}
-
-
-export default {
-    firstLb,
-    managePageChange
-};
+export default lb;

@@ -2,10 +2,12 @@ const Timer = {
     mission: 59990,
     report: 599990,
     tower: 21599990,
+    train: 3599990,
     challenge: 1799990,
-    daily: 86399990,
-    weekly: 604799990,
-}
+    daily: 71999990,
+    vote: 43199990,
+    weekly: 604799990
+};
 
 export default async (options, interaction, MessageEmbed, User, reminderOn) => {
     const ready = options.getBoolean('ready', false) ? true : false;
@@ -18,22 +20,28 @@ export default async (options, interaction, MessageEmbed, User, reminderOn) => {
             })
             return;
         }
+        if (!user.reminder.challenge) user.reminder.challenge = 0;
+        if (!user.reminder.train) user.reminder.train = 0;
+        if (!user.reminder.vote) user.reminder.vote = 0;
+        await user.save();
+
         const embed = new MessageEmbed()
-            .setTitle(`${user.username}'s Cooldowns`);
+            .setTitle(`${user.username}'s Cooldowns`)
+            .setFooter('* means you have to do `n cd` again');
 
         let activities = '';
         let others = ''
         Object.keys(user.reminder).forEach((type, i) => {
             if (type == 'challenge') return;
-            if (i == 3) type = 'challenge';
+            if (i == 4) type = 'challenge';
             const taskReady = (Date.now() - user.reminder[type]) >= Timer[type];
-            if (i <= 3) {
+            if (i <= 4) {
                 activities += (taskReady ? '✅'
                     : '⌛(' + formatCountDown(user.reminder[type], type)[i > 0 ? (i == 2 ? 'hours' : 'minutes') : 'seconds'] + ')')
                     + ` ** ${type}${ra(user.id, type, reminderOn) ? '' : taskReady ? '' : '*'}\n**`;
             } else {
                 others += (taskReady ? '✅'
-                    : '⌛ (' + formatCountDown(user.reminder[type], type)[i < 5 ? 'hours' : 'days'] + ')')
+                    : '⌛ (' + formatCountDown(user.reminder[type], type)[i < 7 ? 'hours' : 'days'] + ')')
                     + ` ** ${type}${ra(user.id, type, reminderOn) ? '' : taskReady ? '' : '*'}\n**`;
             };
         });
@@ -48,14 +56,9 @@ export default async (options, interaction, MessageEmbed, User, reminderOn) => {
             }
         ])
 
-        await interaction.channel.send({
-            content: `<@${interaction.user.id}>`,
-            embeds: [embed]
-        })
         await interaction.reply({
-            content: 'Currently reminders only work for **missions** and **reports**.',
-            ephemeral: true
-        });
+            embeds: [embed],
+        })
     } else { // only ready cds
         const user = await User.findOne({ id: interaction.user.id });
         if (!user) {
@@ -75,15 +78,9 @@ export default async (options, interaction, MessageEmbed, User, reminderOn) => {
 
         embed.description = ready;
 
-        await interaction.channel.send({
-            content: `<@${interaction.user.id}>`,
+        await interaction.reply({
             embeds: [embed]
         })
-
-        await interaction.reply({
-            content: 'Currently reminders only work for **missions** and **reports**.',
-            ephemeral: true
-        });
     }
 }
 
@@ -96,10 +93,12 @@ function formatCountDown(initialTime, type) {
     let full = {
         mission: 1,
         report: 10,
-        daily: 24,
+        daily: 20,
         weekly: 7,
         tower: 6,
-        challenge: 30
+        challenge: 30,
+        vote: 12,
+        train: 60
     }
 
     const milliSeconds = Date.now() - initialTime;

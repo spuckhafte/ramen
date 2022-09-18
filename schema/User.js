@@ -4,19 +4,22 @@ const userSchema = new mongoose.Schema({
     username: String,
     id: String,
     reminder: {
-        mission: Number,
-        report: Number,
-        tower: Number,
-        adventure: Number,
-        daily: Number,
-        weekly: Number,
-        challenge: Number
+        mission: Number,//0
+        report: Number,//1
+        tower: Number,//2
+        train: Number,//3
+        adventure: Number,//4
+        daily: Number,//5
+        vote: Number,//6
+        weekly: Number,//7
+        challenge: Number,//8
     },
     stats: {
         missions: Number,
         reports: Number,
         towers: Number,
-        adventures: Number
+        adventures: Number,
+        challenges: Number
     },
     extras: {
         hide: Boolean,

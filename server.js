@@ -1,4 +1,4 @@
-import Discord, { Intents, MessageActionRow, MessageButton, MessageEmbed, MessageSelectMenu, SelectMenuInteraction } from 'discord.js';
+import Discord, { Intents, MessageActionRow, MessageButton, MessageEmbed, MessageSelectMenu } from 'discord.js';
 import Details from './secret.js'
 import mongoose from 'mongoose';
 import User from './schema/User.js';
@@ -22,9 +22,9 @@ const client = new Discord.Client({
     ]
 });
 
-client.once('ready', () => {
+client.once('ready', async () => {
     console.log('Ready!');
-    client.user.setActivity('/help', { type: 'LISTENING' })
+    client.user.setActivity('/help', { type: 'LISTENING' });
 });
 
 client.on('messageReactionAdd', async (rxn, user) => {
@@ -35,10 +35,12 @@ const Timer = {
     mission: 59990,
     report: 599990,
     tower: 21599990,
+    train: 3599990,
     challenge: 1799990,
-    daily: 86399990,
+    daily: 71999990,
+    vote: 43199990,
     weekly: 604799990
-}
+};
 
 const reminderOn = {}
 
@@ -74,26 +76,41 @@ client.on('messageCreate', async msg => {
     }
 
     if (!msg.author.bot) {
-        if (msg.content.startsWith('<@770100332998295572> tow') || msg.content.startsWith('<@770100332998295572> tower')) {
+        if (msg.content.startsWith('<@770100332998295572> tow') || msg.content.startsWith('<@770100332998295572> tower') || msg.content.startsWith('<@770100332998295572> to')) {
             const filter = m => {
                 if (m.author.id != '770100332998295572' || m.embeds[0] || !m.content) return false;
                 if (!m.content.toLowerCase().includes(msg.author.username.toLowerCase())) return false;
                 return true;
             };
-            const previousTime = (await User.where('id').equals(msg.author.id))[0].reminder.tower;
-            if (Date.now() - previousTime < Timer['tower']) if (reminderActive(msg.author.id, 'tower')) return;
+            const user = (await User.where('id').equals(msg.author.id))[0]
+            if (!user) {
+                storeReminder(msg.author.id, 'tower');
+                const collector = msg.channel.createMessageCollector({ filter, time: 1500 });
+                collector.on('end', async collection => {
+                    if (collection.size == 0) return;
 
-            const collector = msg.channel.createMessageCollector({ filter, time: 1500 });
-            collector.on('end', async collection => {
-                if (collection.size == 0) return;
+                    let nbMsg = collection.first();
+                    if (nbMsg.content.startsWith(`**${msg.author.username}** defeated an enemy`)) {
+                        storeReminder(msg.author.id, 'tower');
+                        remind(User, nbMsg, nbMsg.createdTimestamp, msg.author.username, msg.author.id, 'tower');
+                    };
+                });
+            } else {
+                const previousTime = user.reminder.tower;
+                if (Date.now() - previousTime < Timer['tower']) if (reminderActive(msg.author.id, 'tower')) return;
 
-                let nbMsg = collection.first();
-                if (nbMsg.content.startsWith(`**${msg.author.username}** defeated an enemy`)) {
-                    storeReminder(msg.author.id, 'tower');
-                    remind(User, nbMsg, nbMsg.createdTimestamp, msg.author.username, msg.author.id, 'tower');
-                };
-            });
-        }
+                const collector = msg.channel.createMessageCollector({ filter, time: 1500 });
+                collector.on('end', async collection => {
+                    if (collection.size == 0) return;
+
+                    let nbMsg = collection.first();
+                    if (nbMsg.content.startsWith(`**${msg.author.username}** defeated an enemy`)) {
+                        storeReminder(msg.author.id, 'tower');
+                        remind(User, nbMsg, nbMsg.createdTimestamp, msg.author.username, msg.author.id, 'tower');
+                    };
+                });
+            }
+        };
 
 
         if (msg.content.trim() == '<@770100332998295572> cd' || msg.content.trim() == '<@770100332998295572> cooldown') {
@@ -106,16 +123,25 @@ client.on('messageCreate', async msg => {
 
             collector.on('end', async collected => {
                 const fields = collected.toJSON()[0].embeds[0].fields;
-                fields.pop();
                 const tasksToBeReminded = {}
                 fields.forEach((field, i) => {
                     const tasks = field.value.split('\n');
                     for (let task of tasks) {
                         if (task.includes('white_check_mark')) continue;
-                        const reqTask = task.split('--- ')[1].split(' (')[0].toLowerCase().trim();
+
+                        let reqTask;
+                        if (i != fields.length - 1) reqTask = task.split('--- ')[1].split(' (')[0].toLowerCase().trim();
+                        else {
+                            if (task.toLowerCase().includes('--- train')) reqTask = task.split('--- ')[1].split(' (')[0].toLowerCase().trim();
+                            else return;
+                        }
+
                         if (!Timer[reqTask]) continue;
 
-                        const timeLeft = timeToMs(task.split('--- ')[1].split(' (')[1].split(')')[0]);
+                        let timeLeft;
+                        if (i != fields.length - 1) timeLeft = timeToMs(task.split('--- ')[1].split(' (')[1].split(')')[0]);
+                        else timeLeft = timeToMs(task.split('--- ')[1].split(' (')[1].split(')')[0]);
+
                         tasksToBeReminded[reqTask] = timeLeft;
                     }
                 })
@@ -129,10 +155,11 @@ client.on('messageCreate', async msg => {
                     })
                     return;
                 };
-                if (!user.reminder.challenge) {
-                    user.reminder.challenge = 0;
-                    await user.save();
-                }
+                if (!user.reminder.challenge) user.reminder.challenge = 0;
+                if (!user.reminder.train) user.reminder.train = 0;
+                if (!user.reminder.vote) user.reminder.vote = 0;
+                await user.save();
+
                 for (let task of Object.keys(tasksToBeReminded)) {
                     const previousTime = (await User.where('id').equals(msg.author.id))[0].reminder[task];
                     if (Date.now() - previousTime < Timer[task]) if (reminderActive(msg.author.id, task)) continue;
@@ -156,7 +183,7 @@ client.on('interactionCreate', async interaction => {
         const { commandName, options } = interaction;
 
         if (commandName === 'lb') {
-            lb.firstLb(options, User, interaction, MessageEmbed, MessageActionRow, MessageSelectMenu);
+            lb(options, User, interaction, MessageEmbed, MessageActionRow, MessageButton);
         }
         if (commandName === 'cd') {
             cd(options, interaction, MessageEmbed, User, reminderOn);
@@ -182,7 +209,6 @@ client.on('interactionCreate', async interaction => {
     }
 })
 
-
 function timeToMs(time = '') {
     let days = 0, hours = 0, minutes = 0, seconds = 0
     const arr = time.split(' ')
@@ -203,7 +229,7 @@ function timeToMs(time = '') {
     return ((days * 24 * 60 * 60 * 1000) + (hours * 60 * 60 * 1000) + (minutes * 60 * 1000) + (seconds * 1000));
 }
 
-function storeReminder(id, task) {
+async function storeReminder(id, task) {
     if (!reminderOn[id]) {
         reminderOn[id] = {
             mission: false,
@@ -212,7 +238,9 @@ function storeReminder(id, task) {
             adventure: true,
             daily: false,
             weekly: false,
-            challenge: false
+            challenge: false,
+            train: false,
+            vote: false
         };
     };
 

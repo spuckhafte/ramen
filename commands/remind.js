@@ -2,10 +2,12 @@ const Timer = {
     mission: 59990,
     report: 599990,
     tower: 21599990,
+    train: 3599990,
     challenge: 1799990,
-    daily: 86399990,
-    weekly: 604799990,
-}
+    daily: 71999990,
+    vote: 43199990,
+    weekly: 604799990
+};
 
 export default async (User, botMsg, now, username, userid, type, _customTime, _force) => {
     let specific;
