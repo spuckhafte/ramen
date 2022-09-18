@@ -13,6 +13,7 @@ Utility for **Naruto Botto**.
 4. Shows you online users, playing NB. (*you can also hide from coming into this list*)
 5. Shows you the leaderboard for missions and reports.
 6. Plans your balance, just react to: *n balance*.<br>
+7. A global and local (server-specific) leaderboard for missions and reports
 
 ## Upcoming
 1. Generates a CSV file for your list of ninjas. (*CSV file can be viewed as a spreadsheet in desktop or on browser*)
