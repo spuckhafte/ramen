@@ -32,11 +32,13 @@ export default async (User, botMsg, now, username, userid, type, _customTime, _f
                 reports: 0,
                 towers: 0,
                 adventures: 0
+            },
+            weekly: {
+                missions: 0,
+                reports: 0
             }
         })
-
-        newUser.stats[type + 's'] = 1
-        newUser.save();
+        await newUser.save();
 
         if (!botMsg.guild.me.permissionsIn(botMsg.channel).has('SEND_MESSAGES')) return;
 
@@ -50,10 +52,18 @@ export default async (User, botMsg, now, username, userid, type, _customTime, _f
         const typeTimerExpired = expired(user.reminder[type], type);
         if (typeTimerExpired || _force) {
             user.reminder[type] = _force ? now : Date.now();
-            if (!_force) user.stats[type + 's'] = parseInt(user.stats[type + 's']) + 1
-            user.save();
+            if (!_force) {
+                if (type == 'mission' || type == 'report') {
+                    if (!user.weekly) user.weekly = {
+                        missions: 0,
+                        reports: 0
+                    };
+                }
+            };
+            await user.save();
 
             setTimeout(async () => {
+                if (!botMsg.guild.me.permissionsIn(botMsg.channel).has('SEND_MESSAGES')) return;
                 if (botMsg.channel) await botMsg.channel.send(`<@${userid}> your **${type}** is ready!`);
             }, _customTime ? _customTime : Timer[type]);
 

@@ -24,15 +24,6 @@ async function setOnline(botMsg, User, msg) {
 }
 
 async function showOnline(interaction, User, MessageEmbed) {
-    const userid = interaction.user.id;
-    const userData = await User.findOne({ id: userid });
-    if (!userData) {
-        interaction.reply({
-            content: '**You are not registered.**\nDo a `mission` or `report` to continue...',
-            ephemeral: true
-        });
-        return;
-    }
     const lastOnlineTimeStamp = Date.now() - 60000;
     const users = await User.where('extras.lastOnline').gt(lastOnlineTimeStamp);
     const total = users.length;

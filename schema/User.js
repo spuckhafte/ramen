@@ -25,6 +25,10 @@ const userSchema = new mongoose.Schema({
         hide: Boolean,
         lastCsv: Number,
         lastOnline: Number
+    },
+    weekly: {
+        missions: Number,
+        reports: Number
     }
 });
 

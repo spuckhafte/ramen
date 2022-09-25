@@ -6,14 +6,14 @@ async function lb(options, User, interaction, MessageEmbed, MessageActionRow, Me
     await interaction.deferReply();
 
     let idAndTasks;
-    const prop = `stats.${lbFor}s`
+    const prop = `weekly.${lbFor}s`
     const propobj = {}
     propobj[prop] = -1;
     if (scope == 'global') {
-        idAndTasks = await User.find({}, ['id', `stats.${lbFor}s`, 'username']).sort(propobj);
+        idAndTasks = await User.find({}, ['id', `weekly.${lbFor}s`, 'username']).sort(propobj);
     } else {
         const serverMemIds = (await interaction.guild.members.fetch()).toJSON().map(usr => usr.id)
-        idAndTasks = (await User.find({}, ['id', `stats.${lbFor}s`, 'username']).sort(propobj)).filter(obj => serverMemIds.includes(obj.id));
+        idAndTasks = (await User.find({}, ['id', `weekly.${lbFor}s`, 'username']).sort(propobj)).filter(obj => serverMemIds.includes(obj.id));
     }
 
     const pgForUser = Math.ceil((idAndTasks.findIndex(usr => usr.id == interaction.user.id) + 1) / 10);
@@ -25,13 +25,13 @@ async function lb(options, User, interaction, MessageEmbed, MessageActionRow, Me
         const username = obj.username;
 
         let showName = (obj.id == interaction.user.id ? `**${username}**` : username) + (dev ? `(${obj.id})` : '');
-        desc += `\`#${parseInt(objI) + 1}\` ${showName} - ${obj.stats[`${lbFor}s`]} ${lbFor + 's'}\n`;
+        desc += `\`#${parseInt(objI) + 1}\` ${showName} - ${obj.weekly[`${lbFor}s`]} ${lbFor + 's'}\n`;
     }
     const embed = new MessageEmbed()
         .setTitle(`${scope.toUpperCase()} ${lbFor.toUpperCase()} LEADERBOARD ${dev ? ' -dev' : ''}`)
         .setColor('RANDOM')
         .setDescription(desc)
-        .setFooter(`1 of ${Math.ceil(idAndTasks.length / 10)}`)
+        .setFooter(`1 of ${Math.ceil(idAndTasks.length / 10)} (weekly)`)
 
     const menuOptions = []
     let i = 1;
@@ -91,15 +91,15 @@ async function lb(options, User, interaction, MessageEmbed, MessageActionRow, Me
         let end = start + 9;
 
         let idAndTasks;
-        const prop = `stats.${task}s`
+        const prop = `weekly.${task}s`
         const propobj = {}
         propobj[prop] = -1
 
         if (scope == 'global') {
-            idAndTasks = await User.find({}, ['id', `stats.${task}s`, 'username']).sort(propobj);
+            idAndTasks = await User.find({}, ['id', `weekly.${task}s`, 'username']).sort(propobj);
         } else {
             const serverMemIds = (await interaction.guild.members.fetch()).toJSON().map(usr => usr.id)
-            idAndTasks = (await User.find({}, ['id', `stats.${task}s`, 'username']).sort(propobj)).filter(obj => serverMemIds.includes(obj.id));
+            idAndTasks = (await User.find({}, ['id', `weekly.${task}s`, 'username']).sort(propobj)).filter(obj => serverMemIds.includes(obj.id));
         };
 
         if (end >= idAndTasks.length) end = idAndTasks.length;
@@ -110,7 +110,7 @@ async function lb(options, User, interaction, MessageEmbed, MessageActionRow, Me
             const obj = idAndTasks[i - 1];
             const username = obj.username;
             let showName = (obj.id == interaction.user.id ? `**${username}**` : username) + (isDev ? `(${obj.id})` : '');
-            desc += `\`#${i}\` ${showName} - ${obj.stats[`${task}s`]} ${task + 's'}\n`;
+            desc += `\`#${i}\` ${showName} - ${obj.weekly[`${task}s`]} ${task + 's'}\n`;
             i += 1;
         };
 
@@ -118,7 +118,7 @@ async function lb(options, User, interaction, MessageEmbed, MessageActionRow, Me
             .setTitle(embed.title)
             .setColor('RANDOM')
             .setDescription(desc)
-            .setFooter(`${page} of ${Math.ceil(idAndTasks.length / 10)}`);
+            .setFooter(`${page} of ${Math.ceil(idAndTasks.length / 10)} (weekly)`);
 
         await interaction.editReply({
             content: btn.message.content,

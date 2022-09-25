@@ -12,6 +12,7 @@ import lb from "./commands/lb.js";
 
 mongoose.connect(Details.DB_URL);
 
+
 const client = new Discord.Client({
     intents: [
         Intents.FLAGS.GUILD_MESSAGES,
@@ -42,7 +43,7 @@ const Timer = {
     weekly: 604799990
 };
 
-const reminderOn = {}
+const reminderOn = {};
 
 client.on('messageCreate', async msg => {
     if (msg.author.id === '770100332998295572') {
@@ -67,6 +68,14 @@ client.on('messageCreate', async msg => {
             const userId = botMsg.footer.iconURL.split('/avatars/')[1].split('/')[0];
             storeReminder(userId, 'mission')
             const username = botMsg.title.toLowerCase().replace(/'s ([a-z]+) rank mission/, '');
+            setTimeout(async () => {
+                if (msg.embeds[0].footer.text.includes('Correct answer')) {
+                    const user = await User.findOne({ id: userId });
+                    user.stats.missions = user.stats.missions + 1
+                    user.weekly.missions = user.weekly.missions + 1;
+                    user.save();
+                };
+            }, 20.5 * 1000);
             remind(User, msg, msg.createdTimestamp, username, userId, 'mission');
         }
 
@@ -75,6 +84,14 @@ client.on('messageCreate', async msg => {
             const userId = botMsg.footer.iconURL.split('/avatars/')[1].split('/')[0];
             storeReminder(userId, 'report')
             const username = botMsg.title.toLowerCase().replace('\'s report info', '');
+            setTimeout(async () => {
+                if (msg.embeds[0].footer.text.includes('Successful')) {
+                    const user = await User.findOne({ id: userId });
+                    user.stats.reports = user.stats.reports + 1
+                    user.weekly.reports = user.weekly.reports + 1;
+                    user.save();
+                };
+            }, 20.5 * 1000);
             remind(User, msg, msg.createdTimestamp, username, userId, 'report');
         }
     }
@@ -127,9 +144,9 @@ client.on('messageCreate', async msg => {
 
             collector.on('end', async collected => {
                 if (!collected.toJSON()[0]) return;
-                const embed = collected.toJSON()[0].embeds[0];
-                if (!embed) return;
-                const fields = embed.fields;
+                const embedCollected = collected.toJSON()[0].embeds[0];
+                if (!embedCollected) return;
+                const fields = embedCollected.fields;
                 const tasksToBeReminded = {}
                 fields.forEach((field, i) => {
                     const tasks = field.value.split('\n');
@@ -178,7 +195,15 @@ client.on('messageCreate', async msg => {
                     send.push(`**${task}**`)
                 };
                 const msgg = `${msg.author} reminders added for ${send.join(', ')}`;
-                if (send.length != 0) await msg.channel.send(msgg ? msgg : '--err--')
+                if (send.length != 0) {
+                    if (!msg.guild.me.permissionsIn(msg.channel).has('SEND_MESSAGES')) return;
+                    await msg.channel.send({
+                        content: msgg ? msgg : '--err--',
+                        allowedMentions: {
+                            users: false
+                        }
+                    });
+                }
             })
         }
     }
@@ -236,7 +261,7 @@ function timeToMs(time = '') {
     return ((days * 24 * 60 * 60 * 1000) + (hours * 60 * 60 * 1000) + (minutes * 60 * 1000) + (seconds * 1000));
 }
 
-async function storeReminder(id, task) {
+function storeReminder(id, task) {
     if (!reminderOn[id]) {
         reminderOn[id] = {
             mission: false,
