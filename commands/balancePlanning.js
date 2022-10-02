@@ -4,6 +4,7 @@ export default async (rxn, user, client, MessageEmbed) => {
     if (!botMsg || !botMsg.title) return;
     if (!botMsg.title.includes('balance')) return
     if (!botMsg.footer || !botMsg.footer.text.includes('earned lifetime')) return;
+    if (!rxn.message.embeds[0].footer.iconURL) return;
     if (!rxn.message.embeds[0].footer.iconURL.includes(user.id)) return;
     if (rxn.emoji.name !== '💰') return;
 
