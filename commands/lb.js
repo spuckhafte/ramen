@@ -1,19 +1,37 @@
-async function lb(options, User, interaction, MessageEmbed, MessageActionRow, MessageButton) {
+import { Parser } from 'fast-json-parser'
+import stringify from 'fast-json-stringify'
+
+async function lb(options, User, interaction, MessageEmbed, MessageActionRow, MessageButton, rc) {
     let lbFor = options.getString('for', true);
     const scope = options.getString('scope', true);
     const dev = options.getBoolean('dev', false);
 
     await interaction.deferReply();
+    await interaction.deleteReply();
 
     let idAndTasks;
     const prop = `weekly.${lbFor}s`
     const propobj = {}
     propobj[prop] = -1;
+
+    let stringIdAndTasks = null;
     if (scope == 'global') {
-        idAndTasks = await User.find({}, ['id', `weekly.${lbFor}s`, 'username']).sort(propobj);
+        if (await rc.exists(`global-${lbFor}-lb`) == 0) {
+            idAndTasks = await User.find({}, ['id', `weekly.${lbFor}s`, 'username']).sort(propobj);
+            let fy = stringify({});
+            stringIdAndTasks = fy(idAndTasks);
+        } else {
+            idAndTasks = Parser.parse(await rc.get(`global-${lbFor}-lb`));
+        }
     } else {
-        const serverMemIds = (await interaction.guild.members.fetch()).toJSON().map(usr => usr.id)
-        idAndTasks = (await User.find({}, ['id', `weekly.${lbFor}s`, 'username']).sort(propobj)).filter(obj => serverMemIds.includes(obj.id));
+        if (await rc.exists(`local-${lbFor}-lb-${interaction.guild.id}`) == 0) {
+            const serverMemIds = (await interaction.guild.members.fetch()).toJSON().map(usr => usr.id)
+            idAndTasks = (await User.find({}, ['id', `weekly.${lbFor}s`, 'username']).sort(propobj)).filter(obj => serverMemIds.includes(obj.id));
+            let fy = stringify({});
+            stringIdAndTasks = fy(idAndTasks);
+        } else {
+            idAndTasks = Parser.parse(await rc.get(`local-${lbFor}-lb-${interaction.guild.id}`));
+        }
     }
 
     const pgForUser = Math.ceil((idAndTasks.findIndex(usr => usr.id == interaction.user.id) + 1) / 10);
@@ -57,7 +75,7 @@ async function lb(options, User, interaction, MessageEmbed, MessageActionRow, Me
                 .setStyle('SUCCESS')
         )
 
-    const msgSent = await interaction.editReply({
+    const msgSent = await interaction.channel.send({
         content: `<@${interaction.user.id}> you can be found on **Page ${pgForUser}**`,
         embeds: [embed],
         components: [row],
@@ -65,6 +83,10 @@ async function lb(options, User, interaction, MessageEmbed, MessageActionRow, Me
             users: false
         }
     });
+
+    if (stringIdAndTasks) {
+        await rc.setEx(`${scope}-${lbFor}-lb${scope == 'global' ? '' : `-${interaction.guild.id}`}`, 900, stringIdAndTasks);
+    };
 
     const filter = btn => {
         return btn.user.id == interaction.user.id && msgSent.id == btn.message.id;
@@ -96,11 +118,23 @@ async function lb(options, User, interaction, MessageEmbed, MessageActionRow, Me
         propobj[prop] = -1
 
         if (scope == 'global') {
-            idAndTasks = await User.find({}, ['id', `weekly.${task}s`, 'username']).sort(propobj);
+            if (await rc.exists(`global-${lbFor}-lb`) == 0) {
+                idAndTasks = await User.find({}, ['id', `weekly.${lbFor}s`, 'username']).sort(propobj);
+                let fy = stringify({});
+                stringIdAndTasks = fy(idAndTasks);
+            } else {
+                idAndTasks = Parser.parse(await rc.get(`global-${lbFor}-lb`));
+            }
         } else {
-            const serverMemIds = (await interaction.guild.members.fetch()).toJSON().map(usr => usr.id)
-            idAndTasks = (await User.find({}, ['id', `weekly.${task}s`, 'username']).sort(propobj)).filter(obj => serverMemIds.includes(obj.id));
-        };
+            if (await rc.exists(`local-${lbFor}-lb-${interaction.guild.id}`) == 0) {
+                const serverMemIds = (await interaction.guild.members.fetch()).toJSON().map(usr => usr.id)
+                idAndTasks = (await User.find({}, ['id', `weekly.${lbFor}s`, 'username']).sort(propobj)).filter(obj => serverMemIds.includes(obj.id));
+                let fy = stringify({});
+                stringIdAndTasks = fy(idAndTasks);
+            } else {
+                idAndTasks = Parser.parse(await rc.get(`local-${lbFor}-lb-${interaction.guild.id}`));
+            }
+        }
 
         if (end >= idAndTasks.length) end = idAndTasks.length;
 
@@ -120,11 +154,15 @@ async function lb(options, User, interaction, MessageEmbed, MessageActionRow, Me
             .setDescription(desc)
             .setFooter(`${page} of ${Math.ceil(idAndTasks.length / 10)} (weekly)`);
 
-        await interaction.editReply({
+        await msgSent.edit({
             content: btn.message.content,
             components: [row],
             embeds: [newEmbed]
         });
+
+        if (stringIdAndTasks) {
+            await rc.setEx(`${scope}-${lbFor}-lb${scope == 'global' ? '' : `-${interaction.guild.id}`}`, 900, stringIdAndTasks);
+        };
     })
 }
 

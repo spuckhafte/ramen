@@ -9,7 +9,14 @@ import cd from './commands/cd.js'
 import online from './commands/online.js'
 import help from './commands/help.js'
 import lb from "./commands/lb.js";
+import redis from 'redis'
 
+const rc = redis.createClient({
+    url: Details.REDIS_URL
+});
+
+rc.on('error', (err) => console.log('Redis Error: ', err));
+await rc.connect();
 mongoose.connect(Details.DB_URL);
 
 
@@ -46,6 +53,7 @@ const Timer = {
 const reminderOn = {};
 
 client.on('messageCreate', async msg => {
+    // if (msg.channel.id !== '1019275740283416667') return;
     if (msg.author.id === '770100332998295572') {
         let botMsg = msg.embeds[0];
         if (!botMsg || !botMsg.title) return;
@@ -210,12 +218,13 @@ client.on('messageCreate', async msg => {
 });
 
 client.on('interactionCreate', async interaction => {
+    // if (interaction.channel.id !== '1019275740283416667') return;
     if (interaction.isCommand()) {
 
         const { commandName, options } = interaction;
 
         if (commandName === 'lb') {
-            lb(options, User, interaction, MessageEmbed, MessageActionRow, MessageButton);
+            lb(options, User, interaction, MessageEmbed, MessageActionRow, MessageButton, rc);
         }
         if (commandName === 'cd') {
             cd(options, interaction, MessageEmbed, User, reminderOn);
