@@ -1,4 +1,4 @@
-import Discord, { Intents, MessageActionRow, MessageButton, MessageEmbed, MessageSelectMenu } from 'discord.js';
+import Discord, { Client, Intents, MessageActionRow, MessageButton, MessageEmbed, MessageSelectMenu } from 'discord.js';
 import Details from './secret.js'
 import mongoose from 'mongoose';
 import User from './schema/User.js';
@@ -18,7 +18,6 @@ const rc = redis.createClient({
 rc.on('error', (err) => console.log('Redis Error: ', err));
 await rc.connect();
 mongoose.connect(Details.DB_URL);
-
 
 const client = new Discord.Client({
     intents: [
@@ -53,7 +52,7 @@ const Timer = {
 const reminderOn = {};
 
 client.on('messageCreate', async msg => {
-    // if (msg.channel.id !== '1019275740283416667') return;
+    // if (msg.guild.id !== '1008657622691479633') return; uhhm
     if (msg.author.id === '770100332998295572') {
         let botMsg = msg.embeds[0];
         if (!botMsg || !botMsg.title) return;
@@ -84,7 +83,7 @@ client.on('messageCreate', async msg => {
                     user.save();
                 };
             }, 20.5 * 1000);
-            remind(User, msg, msg.createdTimestamp, username, userId, 'mission');
+            remind(User, msg, msg.createdTimestamp, username, userId, 'mission', false, false, client);
         }
 
         if (botMsg.title.includes('report info')) {
@@ -100,7 +99,7 @@ client.on('messageCreate', async msg => {
                     user.save();
                 };
             }, 20.5 * 1000);
-            remind(User, msg, msg.createdTimestamp, username, userId, 'report');
+            remind(User, msg, msg.createdTimestamp, username, userId, 'report', false, false, client);
         }
     }
 
@@ -121,7 +120,7 @@ client.on('messageCreate', async msg => {
                     let nbMsg = collection.first();
                     if (nbMsg.content.startsWith(`**${msg.author.username}** defeated an enemy`)) {
                         storeReminder(msg.author.id, 'tower');
-                        remind(User, nbMsg, nbMsg.createdTimestamp, msg.author.username, msg.author.id, 'tower');
+                        remind(User, nbMsg, nbMsg.createdTimestamp, msg.author.username, msg.author.id, 'tower', false, false, client);
                     };
                 });
             } else {
@@ -135,7 +134,7 @@ client.on('messageCreate', async msg => {
                     let nbMsg = collection.first();
                     if (nbMsg.content.startsWith(`**${msg.author.username}** defeated an enemy`)) {
                         storeReminder(msg.author.id, 'tower');
-                        remind(User, nbMsg, nbMsg.createdTimestamp, msg.author.username, msg.author.id, 'tower');
+                        remind(User, nbMsg, nbMsg.createdTimestamp, msg.author.username, msg.author.id, 'tower', false, false, client);
                     };
                 });
             }
@@ -199,7 +198,7 @@ client.on('messageCreate', async msg => {
                     const timeLeft = tasksToBeReminded[task]
                     const startTime = (Date.now() - (Timer[task] - timeLeft)) + 1000;
                     storeReminder(msg.author.id, task);
-                    await remind(User, msg, startTime, msg.author.username, msg.author.id, task, timeLeft + 1000, true);
+                    await remind(User, msg, startTime, msg.author.username, msg.author.id, task, timeLeft + 1000, true, client);
                     send.push(`**${task}**`)
                 };
                 const msgg = `${msg.author} reminders added for ${send.join(', ')}`;
@@ -218,7 +217,7 @@ client.on('messageCreate', async msg => {
 });
 
 client.on('interactionCreate', async interaction => {
-    // if (interaction.channel.id !== '1019275740283416667') return;
+    // if (interaction.guild.id !== '1008657622691479633') return; uhhm
     if (interaction.isCommand()) {
 
         const { commandName, options } = interaction;
@@ -293,4 +292,18 @@ function reminderActive(id, task) {
     return reminderOn[id][task];
 }
 
-client.login(Details.TOKEN);
+await client.login(Details.TOKEN)
+
+for (let user of (await User.find({}))) {
+    let reminders = user.reminder;
+    for (let reminder of Object.keys(reminders)) {
+        if (!reminders[reminder]) continue;
+        const deltaTime = Date.now() - reminders[reminder];
+        if (deltaTime >= Timer[reminder]) continue;
+
+        storeReminder(user.id, reminder);
+        const timeLeft = Timer[reminder] - deltaTime - 800;
+        await remind(User, false, reminders[reminder], user.username, user.id, reminder, timeLeft, true, client);
+    }
+}
+console.log('donedonadone');

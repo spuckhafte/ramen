@@ -7,6 +7,7 @@ async function setOnline(botMsg, User, msg) {
 
         if (!userData.extras || Object.keys(userData.extras).length === 0 || !userData.extras.hide) {
             userData.extras = {
+                ...userData.extras,
                 hide: false,
                 lastCsv: 0,
                 lastOnline: msg.createdTimestamp
