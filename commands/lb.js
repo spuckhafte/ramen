@@ -6,9 +6,6 @@ async function lb(options, User, interaction, MessageEmbed, MessageActionRow, Me
     const scope = options.getString('scope', true);
     const dev = options.getBoolean('dev', false);
 
-    await interaction.deferReply();
-    await interaction.deleteReply();
-
     let idAndTasks;
     const prop = `weekly.${lbFor}s`
     const propobj = {}
@@ -82,6 +79,10 @@ async function lb(options, User, interaction, MessageEmbed, MessageActionRow, Me
         allowedMentions: {
             users: false
         }
+    });
+    await interaction.reply({
+        content: '...',
+        ephemeral: true
     });
 
     if (stringIdAndTasks) {
