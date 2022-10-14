@@ -9,7 +9,9 @@ import cd from './commands/cd.js'
 import online from './commands/online.js'
 import help from './commands/help.js'
 import lb from "./commands/lb.js";
-import redis from 'redis'
+import redis from 'redis';
+import helpers from './commands/helpers.js';
+import pLb from './commands/pLb.js';
 
 const rc = redis.createClient({
     url: Details.REDIS_URL
@@ -18,6 +20,7 @@ const rc = redis.createClient({
 rc.on('error', (err) => console.log('Redis Error: ', err));
 await rc.connect();
 mongoose.connect(Details.DB_URL);
+
 
 const client = new Discord.Client({
     intents: [
@@ -52,7 +55,7 @@ const Timer = {
 const reminderOn = {};
 
 client.on('messageCreate', async msg => {
-    // if (msg.guild.id !== '1008657622691479633') return; uhhm
+    // if (msg.channel.id !== '1030165112721506435') return; taishoku chnl
     if (msg.author.id === '770100332998295572') {
         let botMsg = msg.embeds[0];
         if (!botMsg || !botMsg.title) return;
@@ -60,7 +63,7 @@ client.on('messageCreate', async msg => {
         if (botMsg.title.includes('balance')) {
             if (!botMsg.footer || !botMsg.footer.text.includes('earned lifetime')) return;
             if (!msg.guild.me.permissionsIn(msg.channel).has('ADD_REACTIONS')) {
-                await msg.channel.send('`Add Reaction` permission is **missing**')
+                await helpers.send(msg, '`Add Reaction` permission is **missing**')
                 return;
             }
             await msg.react('💰');
@@ -80,6 +83,12 @@ client.on('messageCreate', async msg => {
                     const user = await User.findOne({ id: userId });
                     user.stats.missions = user.stats.missions + 1
                     user.weekly.missions = user.weekly.missions + 1;
+                    if (Details.IMP_SERVERS[msg.guild.id]) {
+                        let server_db_refer = Details.IMP_SERVERS[msg.guild.id].db_refer;
+                        if (user.server_specific_stats[server_db_refer].id == msg.guild.id) {
+                            user.server_specific_stats[server_db_refer].missions = user.server_specific_stats[server_db_refer].missions + 1;
+                        }
+                    }
                     user.save();
                 };
             }, 20.5 * 1000);
@@ -96,6 +105,12 @@ client.on('messageCreate', async msg => {
                     const user = await User.findOne({ id: userId });
                     user.stats.reports = user.stats.reports + 1
                     user.weekly.reports = user.weekly.reports + 1;
+                    if (Details.IMP_SERVERS[msg.guild.id]) {
+                        let server_db_refer = Details.IMP_SERVERS[msg.guild.id].db_refer;
+                        if (user.server_specific_stats[server_db_refer].id == msg.guild.id) {
+                            user.server_specific_stats[server_db_refer].missions = user.server_specific_stats[server_db_refer].missions + 1;
+                        }
+                    }
                     user.save();
                 };
             }, 20.5 * 1000);
@@ -180,7 +195,7 @@ client.on('messageCreate', async msg => {
                 let send = [];
                 let user = (await User.where('id').equals(msg.author.id))[0]
                 if (user == null || user == undefined) {
-                    await msg.reply({
+                    await helpers.reply(msg, {
                         content: '**You are not registered.**\nDo a `mission` or `report` to continue...',
                         ephemeral: true
                     })
@@ -204,7 +219,7 @@ client.on('messageCreate', async msg => {
                 const msgg = `${msg.author} reminders added for ${send.join(', ')}`;
                 if (send.length != 0) {
                     if (!msg.guild.me.permissionsIn(msg.channel).has('SEND_MESSAGES')) return;
-                    await msg.channel.send({
+                    await helpers.send(msg, {
                         content: msgg ? msgg : '--err--',
                         allowedMentions: {
                             users: false
@@ -214,10 +229,41 @@ client.on('messageCreate', async msg => {
             })
         }
     }
+
+    // text commands
+
+    if (!msg.author.bot) {
+        if (!msg.content.toLowerCase().startsWith('r+ ')) return;
+        let cmdArray = msg.content.toLowerCase().trim().split(' ');
+
+        // leaderboard
+        if (cmdArray.length === 3) {
+            let [, cmd, query] = cmdArray;
+
+            if (cmd.trim() == 'leaderboard' || cmd.trim() == 'lb') {
+                if (!Object.keys(Details.IMP_SERVERS).includes(msg.guild.id)) return;
+                let validQueries = { 'mission': 'mission', 'm': 'mission', 'report': 'report', 'r': 'report' };
+                if (!Object.keys(validQueries).includes(query.trim())) return;
+                query = validQueries[query.trim()];
+                let server_db_refer = Details.IMP_SERVERS[msg.guild.id].db_refer;
+
+                pLb.showLb(msg, User, query, server_db_refer, Details, MessageEmbed, MessageActionRow, MessageButton, rc);
+            }
+        };
+
+        // lb clear
+        if (cmdArray.length === 2) {
+            let [, cmd] = cmdArray;
+
+            if (cmd.trim() == 'lb-clr') {
+                pLb.clearLb(msg, User, Details);
+            }
+        }
+    }
 });
 
 client.on('interactionCreate', async interaction => {
-    // if (interaction.guild.id !== '1008657622691479633') return; uhhm
+    // if (interaction.channel.id !== '1030165112721506435') return; taishoku chnl
     if (interaction.isCommand()) {
 
         const { commandName, options } = interaction;

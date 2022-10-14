@@ -30,7 +30,21 @@ const userSchema = new mongoose.Schema({
     weekly: {
         missions: Number,
         reports: Number
-    }
+    },
+    server_specific_stats: {
+        server1: {
+            id: String,
+            name: String,
+            missions: Number,
+            reports: Number
+        },
+        server2: {
+            id: String,
+            name: String,
+            missions: Number,
+            reports: Number
+        }
+    },
 });
 
 const User = mongoose.model("user", userSchema);
