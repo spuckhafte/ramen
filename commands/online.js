@@ -1,3 +1,5 @@
+import helpers from './helpers.js';
+
 async function setOnline(botMsg, User, msg) {
     try {
         if (!botMsg.footer.iconURL) return;
@@ -37,7 +39,7 @@ async function showOnline(interaction, User, MessageEmbed) {
         .setFooter({
             text: '/hide - removes you from this list'
         });
-    await interaction.reply({
+    await helpers.reply(interaction, {
         embeds: [embed]
     });
 }
@@ -46,7 +48,7 @@ async function hideOnline(options, interaction, User) {
     const hiddenState = options.getBoolean('state', true);
     const userData = await User.findOne({ id: interaction.user.id });
     if (!userData) {
-        interaction.reply({
+        helpers.reply(interaction, {
             content: '**You are not registered.**\nDo a `mission` or `report` to continue...',
             ephemeral: true
         });
@@ -54,7 +56,7 @@ async function hideOnline(options, interaction, User) {
     }
     userData.extras.hide = hiddenState;
     await userData.save();
-    await interaction.reply({
+    await helpers.reply(interaction, {
         content: `You are now **${hiddenState ? 'hidden** from' : 'visible** to'} the active user list.`,
         ephemeral: true
     });

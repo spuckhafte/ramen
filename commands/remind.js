@@ -1,3 +1,5 @@
+import helpers from "./helpers.js";
+
 const Timer = {
     mission: 59990,
     report: 599990,
@@ -48,12 +50,16 @@ export default async (User, botMsg, now, username, userid, type, _customTime, _f
         })
         await newUser.save();
 
-        const channel = await client.channels.fetch(newUser.extras.lastActiveChannel);
+        let channel;
+        try {
+            channel = await client.channels.fetch(newUser.extras.lastActiveChannel);
+        } catch (e) {
+            channel = await client.channel.fetch(NB1RAMEN);
+        };
 
         setTimeout(async () => {
             if (channel) {
-                if (botMsg) if (!botMsg.guild.me.permissionsIn(channel).has('SEND_MESSAGES')) return;
-                await channel.send(`<@${userid}> your **${type}** is ready!`);
+                await helpers.send(botMsg, `<@${userid}> your **${type}** is ready!`, channel);
             }
         }, _customTime ? _customTime : Timer[type]);
 
@@ -82,13 +88,23 @@ export default async (User, botMsg, now, username, userid, type, _customTime, _f
                 user.extras.lastActiveChannel = NB1RAMEN;
                 update = true;
             };
-            if (!botMsg) channel = await client.channels.fetch(user.extras.lastActiveChannel);
-            else channel = await botMsg.guild.channels.fetch(user.extras.lastActiveChannel);
+            try {
+                if (!botMsg) channel = await client.channels.fetch(user.extras.lastActiveChannel);
+                else channel = await botMsg.guild.channels.fetch(user.extras.lastActiveChannel);
+            } catch (e) {
+                channel = await client.channels.fetch(NB1RAMEN);
+            }
 
             setTimeout(async () => {
                 if (channel) {
-                    if (botMsg) if (!botMsg.guild.me.permissionsIn(channel).has('SEND_MESSAGES')) return;
-                    await channel.send(`<@${userid}> your **${type}** is ready!`);
+                    if (botMsg) await helpers.send(botMsg, `<@${userid}> your **${type}** is ready!`);
+                    else {
+                        try {
+                            await channel.send(`<@${userid}> your **${type}** is ready!`);
+                        } catch (e) {
+                            null;
+                        }
+                    }
                 };
             }, _customTime ? _customTime : Timer[type]);
 

@@ -1,3 +1,4 @@
+import helpers from "./helpers.js";
 export default async (rxn, user, client, MessageEmbed) => {
     if (user.bot) return;
     const botMsg = rxn.message.embeds[0];
@@ -33,7 +34,7 @@ export default async (rxn, user, client, MessageEmbed) => {
             iconURL: botMsg.footer.iconURL,
             text: user.username
         });
-    await rxn.message.channel.send({
+    await helpers.send(rxn.message, {
         content: `<@${user.id}>`,
         embeds: [embed]
     });

@@ -1,3 +1,4 @@
+import helpers from "./helpers.js";
 const Timer = {
     mission: 59990,
     report: 599990,
@@ -14,7 +15,7 @@ export default async (options, interaction, MessageEmbed, User, reminderOn) => {
     if (!ready) { // all cds
         const user = await User.findOne({ id: interaction.user.id });
         if (!user) {
-            interaction.reply({
+            helpers.reply(interaction, {
                 content: '**You are not registered.**\nDo a `mission` or `report` to continue...',
                 ephemeral: true
             })
@@ -56,13 +57,13 @@ export default async (options, interaction, MessageEmbed, User, reminderOn) => {
             }
         ])
 
-        await interaction.reply({
+        await helpers.reply(interaction, {
             embeds: [embed],
         })
     } else { // only ready cds
         const user = await User.findOne({ id: interaction.user.id });
         if (!user) {
-            interaction.reply({
+            helpers.reply(interaction, {
                 content: '**You are not registered.**\nUse any task related command (eg. `mission`) to get started.',
                 ephemeral: true
             })
@@ -78,7 +79,7 @@ export default async (options, interaction, MessageEmbed, User, reminderOn) => {
 
         embed.description = ready;
 
-        await interaction.reply({
+        await helpers.reply(interaction, {
             embeds: [embed]
         })
     }

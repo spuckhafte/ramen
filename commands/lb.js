@@ -1,5 +1,6 @@
-import { Parser } from 'fast-json-parser'
-import stringify from 'fast-json-stringify'
+import { Parser } from 'fast-json-parser';
+import stringify from 'fast-json-stringify';
+import helpers from './helpers.js';
 
 async function lb(options, User, interaction, MessageEmbed, MessageActionRow, MessageButton, rc) {
     let lbFor = options.getString('for', true);
@@ -72,7 +73,7 @@ async function lb(options, User, interaction, MessageEmbed, MessageActionRow, Me
                 .setStyle('SUCCESS')
         )
 
-    const msgSent = await interaction.channel.send({
+    const msgSent = await helpers.send(interaction, {
         content: `<@${interaction.user.id}> you can be found on **Page ${pgForUser}**`,
         embeds: [embed],
         components: [row],
@@ -80,7 +81,7 @@ async function lb(options, User, interaction, MessageEmbed, MessageActionRow, Me
             users: false
         }
     });
-    await interaction.reply({
+    await helpers.reply(interaction, {
         content: '...',
         ephemeral: true
     });
