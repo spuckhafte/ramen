@@ -12,6 +12,7 @@ import lb from "./commands/lb.js";
 import redis from 'redis';
 import helpers from './commands/helpers.js';
 import pLb from './commands/pLb.js';
+import profile from './commands/profile.js';
 
 const rc = redis.createClient({
     url: Details.REDIS_URL
@@ -20,7 +21,6 @@ const rc = redis.createClient({
 rc.on('error', (err) => console.log('Redis Error: ', err));
 await rc.connect();
 mongoose.connect(Details.DB_URL);
-
 
 const client = new Discord.Client({
     intents: [
@@ -55,7 +55,7 @@ const Timer = {
 const reminderOn = {};
 
 client.on('messageCreate', async msg => {
-    // if (msg.channel.id !== '1030165112721506435') return; taishoku chnl
+    // if (msg.channel.id !== '1008657622691479636') return; uhhm testing
     if (msg.author.id === '770100332998295572') {
         let botMsg = msg.embeds[0];
         if (!botMsg || !botMsg.title) return;
@@ -257,13 +257,13 @@ client.on('messageCreate', async msg => {
 
             if (cmd.trim() == 'lb-clr') {
                 pLb.clearLb(msg, User, Details);
-            }
+            };
         }
     }
 });
 
 client.on('interactionCreate', async interaction => {
-    // if (interaction.channel.id !== '1030165112721506435') return; taishoku chnl
+    // if (interaction.channel.id !== '1008657622691479636') return; uhhm testing
     if (interaction.isCommand()) {
 
         const { commandName, options } = interaction;
@@ -285,6 +285,11 @@ client.on('interactionCreate', async interaction => {
 
         if (commandName === 'help') {
             help(interaction, MessageEmbed, MessageActionRow, MessageButton);
+        }
+
+        if (commandName === 'profile') {
+            const author = interaction.options.getMentionable('other', false) ? interaction.options.getMentionable('other', false) : interaction.user;
+            profile(interaction, author, User, MessageEmbed);
         }
     }
 

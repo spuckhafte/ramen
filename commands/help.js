@@ -9,6 +9,7 @@ export default async (interaction, MessageEmbed, MessageActionRow, MessageButton
             { name: '`hide` **- hides you from the list of active users, even if you are active**', value: 'Options: *state*' },
             { name: '`cd` **- shows you your cooldowns for various tasks**', value: 'Options: *ready*' },
             { name: '`lb` **- shows you the leaderboard of missions and reports**', value: 'Options: *for*, *scope*, *dev (optional)*' },
+            { name: '`profile` **- shows you the profile of yourself and others**', value: 'Options: *other (optional)*' },
             { name: '`help` **- shows you this guide**', value: 'Options: *none*' },
             {
                 name: '=================\nOthers',
@@ -23,6 +24,10 @@ export default async (interaction, MessageEmbed, MessageActionRow, MessageButton
         .addComponents(
             new MessageButton()
                 .setURL('https://discordbotlist.com/bots/ramen-3767/upvote')
+                .setLabel('Vote - DBL')
+                .setStyle('LINK'),
+            new MessageButton()
+                .setURL('https://top.gg/bot/1016043389994668073/vote')
                 .setLabel('Vote - DBL')
                 .setStyle('LINK'),
             new MessageButton()
