@@ -25,7 +25,8 @@ const userSchema = new mongoose.Schema({
         hide: Boolean,
         lastCsv: Number,
         lastOnline: Number,
-        lastActiveChannel: String
+        lastActiveChannel: String,
+        xp: Number
     },
     weekly: {
         missions: Number,

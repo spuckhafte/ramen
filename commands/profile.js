@@ -1,5 +1,5 @@
 import helper from './helpers.js';
-async function showProfile(msg, author, User, MessageEmbed) {
+async function showProfile(msg, author, User, MessageEmbed, client) {
     const userData = await User.findOne({ id: author.id });
     if (!userData) {
         await helper.reply(msg, {
@@ -10,7 +10,7 @@ async function showProfile(msg, author, User, MessageEmbed) {
     }
     const embed = new MessageEmbed()
         .setTitle(`👤 ${userData.username}`)
-        .setThumbnail(author.avatarURL())
+        .setThumbnail(author.displayAvatarURL())
         .setDescription(`**Username:** ${userData.username}\n**Last Active:** ${lastActive(userData.extras.lastOnline)}\n**Hidden:** ${userData.extras.hide ? 'Yes' : 'No'}\n`)
         .addFields([
             {
@@ -22,7 +22,11 @@ async function showProfile(msg, author, User, MessageEmbed) {
                 value: `**➼ Missions:** ${userData.weekly.missions}\n**➼ Reports:** ${userData.weekly.reports}`,
                 inline: true
             }
-        ]);
+        ])
+        .setFooter({
+            text: `Level: ${Math.floor(userData.extras.xp)} | XP: ${((userData.extras.xp - Math.floor(userData.extras.xp)) * 100).toFixed(2)}/100`,
+            iconURL: client.user.displayAvatarURL()
+        })
 
     helper.reply(msg, {
         embeds: [embed],

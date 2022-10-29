@@ -52,10 +52,16 @@ const Timer = {
     weekly: 604799990
 };
 
+const xpInc = {
+    taskPassBenefit: 0.05,
+    taskFailBenefit: 0.05 / 2,
+    ramenCmdBenefit: 0.05 / 5
+};
+const GROWTH_FACTOR = 8;
 const reminderOn = {};
 
 client.on('messageCreate', async msg => {
-    // if (msg.channel.id !== '1008657622691479636') return; uhhm testing
+    // if (msg.channel.id !== '1008657622691479636') return; uuhm
     if (msg.author.id === '770100332998295572') {
         let botMsg = msg.embeds[0];
         if (!botMsg || !botMsg.title) return;
@@ -79,9 +85,10 @@ client.on('messageCreate', async msg => {
             storeReminder(userId, 'mission')
             const username = botMsg.title.toLowerCase().replace(/'s ([a-z]+) rank mission/, '');
             setTimeout(async () => {
+                const user = await User.findOne({ id: userId });
                 if (msg.embeds[0].footer.text.includes('Correct answer')) {
-                    const user = await User.findOne({ id: userId });
-                    user.stats.missions = user.stats.missions + 1
+                    user.stats.missions = user.stats.missions + 1;
+                    user.extras.xp = user.extras.xp + growth(user.extras.xp, xpInc.taskPassBenefit);
                     user.weekly.missions = user.weekly.missions + 1;
                     if (Details.IMP_SERVERS[msg.guild.id]) {
                         let server_db_refer = Details.IMP_SERVERS[msg.guild.id].db_refer;
@@ -89,8 +96,10 @@ client.on('messageCreate', async msg => {
                             user.server_specific_stats[server_db_refer].missions = user.server_specific_stats[server_db_refer].missions + 1;
                         }
                     }
-                    user.save();
-                };
+                } else {
+                    user.extras.xp = user.extras.xp + growth(user.extras.xp, xpInc.taskFailBenefit);
+                }
+                user.save();
             }, 20.5 * 1000);
             remind(User, msg, msg.createdTimestamp, username, userId, 'mission', false, false, client);
         }
@@ -101,9 +110,10 @@ client.on('messageCreate', async msg => {
             storeReminder(userId, 'report')
             const username = botMsg.title.toLowerCase().replace('\'s report info', '');
             setTimeout(async () => {
+                const user = await User.findOne({ id: userId });
                 if (msg.embeds[0].footer.text.includes('Successful')) {
-                    const user = await User.findOne({ id: userId });
-                    user.stats.reports = user.stats.reports + 1
+                    user.stats.reports = user.stats.reports + 1;
+                    user.extras.xp = user.extras.xp + growth(user.extras.xp, xpInc.taskPassBenefit);
                     user.weekly.reports = user.weekly.reports + 1;
                     if (Details.IMP_SERVERS[msg.guild.id]) {
                         let server_db_refer = Details.IMP_SERVERS[msg.guild.id].db_refer;
@@ -111,8 +121,8 @@ client.on('messageCreate', async msg => {
                             user.server_specific_stats[server_db_refer].missions = user.server_specific_stats[server_db_refer].missions + 1;
                         }
                     }
-                    user.save();
-                };
+                } else user.extras.xp = user.extras.xp + growth(user.extras.xp, xpInc.taskFailBenefit);
+                user.save();
             }, 20.5 * 1000);
             remind(User, msg, msg.createdTimestamp, username, userId, 'report', false, false, client);
         }
@@ -150,6 +160,8 @@ client.on('messageCreate', async msg => {
                     if (nbMsg.content.startsWith(`**${msg.author.username}** defeated an enemy`)) {
                         storeReminder(msg.author.id, 'tower');
                         remind(User, nbMsg, nbMsg.createdTimestamp, msg.author.username, msg.author.id, 'tower', false, false, client);
+                        user.extras.xp = user.extras.xp + growth(user.extras.xp, xpInc.taskPassBenefit);
+                        user.save()
                     };
                 });
             }
@@ -263,10 +275,22 @@ client.on('messageCreate', async msg => {
 });
 
 client.on('interactionCreate', async interaction => {
-    // if (interaction.channel.id !== '1008657622691479636') return; uhhm testing
+    // if (interaction.channel.id !== '1008657622691479636') return; uhhm
     if (interaction.isCommand()) {
 
         const { commandName, options } = interaction;
+
+        let user = await User.findOne({ id: interaction.user.id });
+        if (Date.now() - user.extras.lastCsv >= 1 * 60 * 1000 && Date.now() - user.extras.lastCsv < 10 * 60 * 1000) {
+            user.extras.xp = user.extras.xp + growth(user.extras.xp, xpInc.ramenCmdBenefit);
+            user.extras.lastCsv = Date.now();
+            user.save();
+        } else {
+            if (Date.now() - user.extras.lastCsv >= 10 * 60 * 1000) {
+                user.extras.lastCsv = Date.now();
+                user.save();
+            }
+        }
 
         if (commandName === 'lb') {
             lb(options, User, interaction, MessageEmbed, MessageActionRow, MessageButton, rc);
@@ -289,7 +313,7 @@ client.on('interactionCreate', async interaction => {
 
         if (commandName === 'profile') {
             const author = interaction.options.getMentionable('other', false) ? interaction.options.getMentionable('other', false) : interaction.user;
-            profile(interaction, author, User, MessageEmbed);
+            profile(interaction, author, User, MessageEmbed, client);
         }
     }
 
@@ -319,6 +343,11 @@ function timeToMs(time = '') {
 
     return ((days * 24 * 60 * 60 * 1000) + (hours * 60 * 60 * 1000) + (minutes * 60 * 1000) + (seconds * 1000));
 }
+
+function growth(xp, inc) {
+    return parseFloat((inc / (1 + Math.floor(xp) / GROWTH_FACTOR)).toFixed(2));
+}
+growth(1.2342, 0.25)
 
 function storeReminder(id, task) {
     if (!reminderOn[id]) {
