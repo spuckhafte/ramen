@@ -118,7 +118,7 @@ client.on('messageCreate', async msg => {
                     if (Details.IMP_SERVERS[msg.guild.id]) {
                         let server_db_refer = Details.IMP_SERVERS[msg.guild.id].db_refer;
                         if (user.server_specific_stats[server_db_refer].id == msg.guild.id) {
-                            user.server_specific_stats[server_db_refer].missions = user.server_specific_stats[server_db_refer].missions + 1;
+                            user.server_specific_stats[server_db_refer].reports = user.server_specific_stats[server_db_refer].reports + 1;
                         }
                     }
                 } else user.extras.xp = user.extras.xp + growth(user.extras.xp, xpInc.taskFailBenefit);
@@ -267,8 +267,13 @@ client.on('messageCreate', async msg => {
         if (cmdArray.length === 2) {
             let [, cmd] = cmdArray;
 
-            if (cmd.trim() == 'lb-clr') {
-                pLb.clearLb(msg, User, Details);
+            if (cmd.trim() == 'lb-clr-m' || cmd.trim() == 'lb-clr-r') {
+                let dict = {
+                    'm': 'missions',
+                    'r': 'reports'
+                }
+                const task = dict[cmd.trim().split('-')[2]]
+                pLb.clearLb(msg, User, Details, task);
             };
         }
     }

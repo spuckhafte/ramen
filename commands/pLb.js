@@ -143,21 +143,16 @@ async function showLb(msg, User, query, server_db_refer, Details, MessageEmbed, 
     })
 }
 
-async function clearLb(msg, User, Details) {
+async function clearLb(msg, User, Details, task) {
     if (!Object.keys(Details.IMP_SERVERS).includes(msg.guild.id)) return;
     if (!Details.IMP_SERVERS[msg.guild.id].mod.includes(msg.author.id)) return;
     let server_db_refer = Details.IMP_SERVERS[msg.guild.id].db_refer;
     let propobj = {}
-    let prop = `server_specific_stats.${server_db_refer}`;
-    propobj[prop] = {
-        id: msg.guild.id,
-        name: Details.IMP_SERVERS[msg.guild.id].server,
-        missions: 0,
-        reports: 0
-    }
+    let prop = `server_specific_stats.${server_db_refer}.${task}`;
+    propobj[prop] = 0;
     try {
         await User.updateMany({}, propobj);
-        helpers.reply(msg, 'Leaderboards Reset!');
+        helpers.reply(msg, `${task} Leaderboard Reset!`);
     } catch (e) {
         helpers.reply(msg, '--some error occurred');
     };
