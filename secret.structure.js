@@ -13,7 +13,7 @@ export default {
         '2224683637333357': { /* Example */
             server: 'Cool Server',
             mod: ['35346436346346346', '245435346346346'],
-            db_refer: 'server1'
+            db_refer: 'server1' /* User.server_specific_stats.server1 */
         }
     }
 };
