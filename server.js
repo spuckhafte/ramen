@@ -57,7 +57,7 @@ const xpInc = {
     taskFailBenefit: 0.05 / 2,
     ramenCmdBenefit: 0.05 / 5
 };
-const GROWTH_FACTOR = 8;
+const GROWTH_FACTOR = 0.8;
 const reminderOn = {};
 
 client.on('messageCreate', async msg => {
@@ -345,7 +345,7 @@ function timeToMs(time = '') {
 }
 
 function growth(xp, inc) {
-    return parseFloat((inc / (1 + Math.floor(xp) / GROWTH_FACTOR)).toFixed(2));
+    return parseFloat((inc / (1 + Math.floor(xp) / GROWTH_FACTOR)).toFixed(3));
 }
 growth(1.2342, 0.25)
 
