@@ -1,4 +1,4 @@
-import Discord, { Client, Intents, MessageActionRow, MessageButton, MessageEmbed, MessageSelectMenu } from 'discord.js';
+import Discord, { Intents, MessageActionRow, MessageButton, MessageEmbed, MessageSelectMenu } from 'discord.js';
 import Details from './secret.js'
 import mongoose from 'mongoose';
 import User from './schema/User.js';
@@ -14,11 +14,14 @@ import helpers from './commands/helpers.js';
 import pLb from './commands/pLb.js';
 import profile from './commands/profile.js';
 
+import Console from "./Console.js"
+new Console();
+
 const rc = redis.createClient({
     url: Details.REDIS_URL
 });
 
-rc.on('error', (err) => console.log('Redis Error: ', err));
+rc.on('error', (err) => console.error('Redis Error: ', err));
 await rc.connect();
 mongoose.connect(Details.DB_URL);
 
@@ -61,7 +64,7 @@ const GROWTH_FACTOR = 0.8;
 const reminderOn = {};
 
 client.on('messageCreate', async msg => {
-    // if (msg.channel.id !== '1008657622691479636') return; uuhm
+    // if (msg.channel.id !== '1008657622691479636') return; uhhm
     if (msg.author.id === '770100332998295572') {
         let botMsg = msg.embeds[0];
         if (!botMsg || !botMsg.title) return;
