@@ -13,6 +13,7 @@ import redis from 'redis';
 import helpers from './commands/helpers.js';
 import pLb from './commands/pLb.js';
 import profile from './commands/profile.js';
+import vote from './commands/vote.js';
 
 import Console from "./Console.js"
 new Console();
@@ -91,7 +92,8 @@ client.on('messageCreate', async msg => {
                 const user = await User.findOne({ id: userId });
                 if (msg.embeds[0].footer.text.includes('Correct answer')) {
                     user.stats.missions = user.stats.missions + 1;
-                    user.extras.xp = user.extras.xp + growth(user.extras.xp, xpInc.taskPassBenefit);
+                    let xp = user.extras.xp ? user.extras.xp : 0;
+                    user.extras.xp = xp + growth(xp, xpInc.taskPassBenefit);
                     user.weekly.missions = user.weekly.missions + 1;
                     if (Details.IMP_SERVERS[msg.guild.id]) {
                         let server_db_refer = Details.IMP_SERVERS[msg.guild.id].db_refer;
@@ -100,7 +102,8 @@ client.on('messageCreate', async msg => {
                         }
                     }
                 } else {
-                    user.extras.xp = user.extras.xp + growth(user.extras.xp, xpInc.taskFailBenefit);
+                    let xp = user.extras.xp ? user.extras.xp : 0;
+                    user.extras.xp = xp + growth(xp, xpInc.taskFailBenefit);
                 }
                 user.save();
             }, 20.5 * 1000);
@@ -116,7 +119,8 @@ client.on('messageCreate', async msg => {
                 const user = await User.findOne({ id: userId });
                 if (msg.embeds[0].footer.text.includes('Successful')) {
                     user.stats.reports = user.stats.reports + 1;
-                    user.extras.xp = user.extras.xp + growth(user.extras.xp, xpInc.taskPassBenefit);
+                    let xp = user.extras.xp ? user.extras.xp : 0;
+                    user.extras.xp = xp + growth(xp, xpInc.taskPassBenefit);
                     user.weekly.reports = user.weekly.reports + 1;
                     if (Details.IMP_SERVERS[msg.guild.id]) {
                         let server_db_refer = Details.IMP_SERVERS[msg.guild.id].db_refer;
@@ -124,7 +128,10 @@ client.on('messageCreate', async msg => {
                             user.server_specific_stats[server_db_refer].reports = user.server_specific_stats[server_db_refer].reports + 1;
                         }
                     }
-                } else user.extras.xp = user.extras.xp + growth(user.extras.xp, xpInc.taskFailBenefit);
+                } else {
+                    let xp = user.extras.xp ? user.extras.xp : 0;
+                    user.extras.xp = xp + growth(xp, xpInc.taskFailBenefit);
+                }
                 user.save();
             }, 20.5 * 1000);
             remind(User, msg, msg.createdTimestamp, username, userId, 'report', false, false, client);
@@ -316,12 +323,16 @@ client.on('interactionCreate', async interaction => {
         }
 
         if (commandName === 'help') {
-            help(interaction, MessageEmbed, MessageActionRow, MessageButton);
+            help(interaction, MessageEmbed);
         }
 
         if (commandName === 'profile') {
             const author = interaction.options.getMentionable('other', false) ? interaction.options.getMentionable('other', false) : interaction.user;
             profile(interaction, author, User, MessageEmbed, client);
+        }
+
+        if (commandName === 'vote') {
+            vote(interaction, MessageEmbed, MessageActionRow, MessageButton, client);
         }
     }
 
@@ -355,7 +366,6 @@ function timeToMs(time = '') {
 function growth(xp, inc) {
     return parseFloat((inc / (1 + Math.floor(xp) / GROWTH_FACTOR)).toFixed(3));
 }
-growth(1.2342, 0.25)
 
 function storeReminder(id, task) {
     if (!reminderOn[id]) {
