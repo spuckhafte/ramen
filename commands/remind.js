@@ -10,6 +10,7 @@ const Timer = {
     vote: 43199990,
     weekly: 604799990
 };
+const delay = 500;
 
 const NB1RAMEN = '1017481136471023646';
 
@@ -106,7 +107,7 @@ export default async (User, botMsg, now, username, userid, type, _customTime, _f
                         }
                     }
                 };
-            }, _customTime ? _customTime : Timer[type]);
+            }, (_customTime ? _customTime : Timer[type]) - delay);
 
             if (update) await user.save();
 
