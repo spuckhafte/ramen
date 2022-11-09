@@ -170,7 +170,8 @@ client.on('messageCreate', async msg => {
                     if (nbMsg.content.startsWith(`**${msg.author.username}** defeated an enemy`)) {
                         storeReminder(msg.author.id, 'tower');
                         remind(User, nbMsg, nbMsg.createdTimestamp, msg.author.username, msg.author.id, 'tower', false, false, client);
-                        user.extras.xp = user.extras.xp + growth(user.extras.xp, xpInc.taskPassBenefit);
+                        let xp = user.extras.xp ? user.extras.xp : 0;
+                        user.extras.xp = xp + growth(xp, xpInc.taskPassBenefit);
                         user.save()
                     };
                 });
@@ -284,6 +285,20 @@ client.on('messageCreate', async msg => {
                 }
                 const task = dict[cmd.trim().split('-')[2]]
                 pLb.clearLb(msg, User, Details, task);
+            };
+
+            if (cmd.trim() == 'update') {
+                const user = await User.findOne({ id: msg.author.id });
+                if (user.username != msg.author.username) {
+                    user.username = msg.author.username;
+                    await user.save();
+                }
+                msg.reply({
+                    content: '✅ **username updated!**',
+                    allowedMentions: {
+                        repliedUser: false
+                    }
+                });
             };
         }
     }
