@@ -47,6 +47,19 @@ export default async (User, botMsg, now, username, userid, type, _customTime, _f
             weekly: {
                 missions: 0,
                 reports: 0
+            },
+            server_specific_stats: {
+                server1: {
+                    id: '1008657622691479633',
+                    name: 'uhhm',
+                    missions: 0,
+                    reports: 0
+                }, server2: {
+                    id: '990468363404857356',
+                    name: 'ⴵ Taishoku',
+                    missions: 0,
+                    reports: 0
+                }
             }
         })
         await newUser.save();
