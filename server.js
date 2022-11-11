@@ -16,6 +16,7 @@ import profile from './commands/profile.js';
 import vote from './commands/vote.js';
 
 import Console from "./Console.js"
+import here from './commands/here.js';
 new Console();
 
 const rc = redis.createClient({
@@ -65,7 +66,7 @@ const GROWTH_FACTOR = 0.8;
 const reminderOn = {};
 
 client.on('messageCreate', async msg => {
-    // if (msg.channel.id !== '1008657622691479636') return; uhhm
+    // if (msg.guild.id !== '1008657622691479633') return; uhhm
     if (msg.author.id === '770100332998295572') {
         let botMsg = msg.embeds[0];
         if (!botMsg || !botMsg.title) return;
@@ -305,7 +306,7 @@ client.on('messageCreate', async msg => {
 });
 
 client.on('interactionCreate', async interaction => {
-    // if (interaction.channel.id !== '1008657622691479636') return; uhhm
+    // if (interaction.guild.id !== '1008657622691479633') return; uhhm
     if (interaction.isCommand()) {
 
         const { commandName, options } = interaction;
@@ -348,6 +349,10 @@ client.on('interactionCreate', async interaction => {
 
         if (commandName === 'vote') {
             vote(interaction, MessageEmbed, MessageActionRow, MessageButton, client);
+        }
+
+        if (commandName === 'here') {
+            here(interaction, User);
         }
     }
 

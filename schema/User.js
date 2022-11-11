@@ -46,6 +46,11 @@ const userSchema = new mongoose.Schema({
             reports: Number
         }
     },
+    channelOverride: {
+        id: String,
+        channelName: String,
+        serverName: String
+    },
 });
 
 const User = mongoose.model("user", userSchema);

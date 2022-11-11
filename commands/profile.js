@@ -7,11 +7,16 @@ async function showProfile(msg, author, User, MessageEmbed, client) {
             ephemeral: true
         })
         return;
-    }
+    };
+
+    let channel;
+    if (!userData.channelOverride || !userData.channelOverride.id || userData.channelOverride.id == 'off') channel = 'Not Set';
+    else channel = `${userData.channelOverride.channelName} • ${userData.channelOverride.serverName}`;
+    
     const embed = new MessageEmbed()
         .setTitle(`👤 ${userData.username}`)
         .setThumbnail(author.displayAvatarURL())
-        .setDescription(`**Username:** ${userData.username}\n**Last Active:** ${lastActive(userData.extras.lastOnline)}\n**Hidden:** ${userData.extras.hide ? 'Yes' : 'No'}\n`)
+        .setDescription(`**Username:** ${userData.username}\n**Last Active:** ${lastActive(userData.extras.lastOnline)}\n**Hidden:** ${userData.extras.hide ? 'Yes' : 'No'}\n**Channel:** ${channel}\n`)
         .addFields([
             {
                 name: '👴 LIFETIME STATS',

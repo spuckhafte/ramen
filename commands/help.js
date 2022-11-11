@@ -10,7 +10,8 @@ export default async (interaction, MessageEmbed) => {
             { name: '`cd` **- shows you your cooldowns for various tasks**', value: 'Options: *ready*' },
             { name: '`lb` **- shows you the leaderboard of missions and reports**', value: 'Options: *for*, *scope*, *dev (optional)*' },
             { name: '`profile` **- shows you the profile of yourself and others**', value: 'Options: *other (optional)*' },
-            { name: '`vote` **- support the bot by voting for it in DBL and Top.gg', value: 'Options: *none*' },
+            { name: '`vote` **- support the bot by voting for it in DBL and Top.gg**', value: 'Options: *none*' },
+            { name: '`here` **- complete tasks anywhere, get reminders here', value: 'Options: *off*' },
             { name: '`help` **- shows you this guide**', value: 'Options: *none*' },
             {
                 name: '=================\nOthers',

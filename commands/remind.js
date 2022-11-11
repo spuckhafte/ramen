@@ -89,16 +89,22 @@ export default async (User, botMsg, now, username, userid, type, _customTime, _f
                 user.extras.lastActiveChannel = NB1RAMEN;
                 update = true;
             };
+            let custom = false;
             try {
-                if (!botMsg) channel = await client.channels.fetch(user.extras.lastActiveChannel);
-                else channel = await botMsg.guild.channels.fetch(user.extras.lastActiveChannel);
+                if (!user.channelOverride || !user.channelOverride.id || user.channelOverride.id == 'off') {
+                    if (!botMsg) channel = await client.channels.fetch(user.extras.lastActiveChannel);
+                    else channel = await botMsg.guild.channels.fetch(user.extras.lastActiveChannel);
+                } else {
+                    channel = await client.channels.fetch(user.channelOverride.id);
+                    custom = true;
+                }
             } catch (e) {
                 channel = await client.channels.fetch(NB1RAMEN);
             }
 
             setTimeout(async () => {
                 if (channel) {
-                    if (botMsg) await helpers.send(botMsg, `<@${userid}> your **${type}** is ready!`);
+                    if (botMsg && !custom) await helpers.send(botMsg, `<@${userid}> your **${type}** is ready!`);
                     else {
                         try {
                             await channel.send(`<@${userid}> your **${type}** is ready!`);
