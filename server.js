@@ -312,14 +312,16 @@ client.on('interactionCreate', async interaction => {
         const { commandName, options } = interaction;
 
         let user = await User.findOne({ id: interaction.user.id });
-        if (Date.now() - user.extras.lastCsv >= 1 * 60 * 1000 && Date.now() - user.extras.lastCsv < 10 * 60 * 1000) {
-            user.extras.xp = user.extras.xp + growth(user.extras.xp, xpInc.ramenCmdBenefit);
-            user.extras.lastCsv = Date.now();
-            user.save();
-        } else {
-            if (Date.now() - user.extras.lastCsv >= 10 * 60 * 1000) {
+        if (user) {
+            if (Date.now() - user.extras.lastCsv >= 1 * 60 * 1000 && Date.now() - user.extras.lastCsv < 10 * 60 * 1000) {
+                user.extras.xp = user.extras.xp + growth(user.extras.xp, xpInc.ramenCmdBenefit);
                 user.extras.lastCsv = Date.now();
                 user.save();
+            } else {
+                if (Date.now() - user.extras.lastCsv >= 10 * 60 * 1000) {
+                    user.extras.lastCsv = Date.now();
+                    user.save();
+                }
             }
         }
 
