@@ -40,6 +40,7 @@ const client = new Discord.Client({
 client.once('ready', async () => {
     console.log('Ready!');
     client.user.setActivity('/help', { type: 'LISTENING' });
+    donedonadone();
 });
 
 client.on('messageReactionAdd', async (rxn, user) => {
@@ -54,7 +55,8 @@ const Timer = {
     challenge: 1799990,
     daily: 71999990,
     vote: 43199990,
-    weekly: 604799990
+    weekly: 604799990,
+    adventure: 21600000
 };
 
 const xpInc = {
@@ -66,7 +68,7 @@ const GROWTH_FACTOR = 0.8;
 const reminderOn = {};
 
 client.on('messageCreate', async msg => {
-    // if (msg.guild.id !== '1008657622691479633') return; uhhm
+    // if (msg.channel.id !== '1019275740283416667') return; ramen testing
     if (msg.author.id === '770100332998295572') {
         let botMsg = msg.embeds[0];
         if (!botMsg || !botMsg.title) return;
@@ -171,6 +173,47 @@ client.on('messageCreate', async msg => {
                     if (nbMsg.content.startsWith(`**${msg.author.username}** defeated an enemy`)) {
                         storeReminder(msg.author.id, 'tower');
                         remind(User, nbMsg, nbMsg.createdTimestamp, msg.author.username, msg.author.id, 'tower', false, false, client);
+                        let xp = user.extras.xp ? user.extras.xp : 0;
+                        user.extras.xp = xp + growth(xp, xpInc.taskPassBenefit);
+                        user.save()
+                    };
+                });
+            }
+        };
+
+        if (msg.content.startsWith('<@770100332998295572> adv') || msg.content.startsWith('<@770100332998295572> adventure')) {
+            const filter = m => {
+                if (m.author.id != '770100332998295572' || m.embeds[0] || !m.content) return false;
+                if (!m.content.toLowerCase()
+                    .includes(`ryo **${msg.author.username.toLowerCase()}#${msg.author.discriminator}`)
+                ) return false;
+                return true;
+            };
+            const user = (await User.where('id').equals(msg.author.id))[0]
+            if (!user) {
+                storeReminder(msg.author.id, 'adventure');
+                const collector = msg.channel.createMessageCollector({ filter, time: 1500 });
+                collector.on('end', async collection => {
+                    if (collection.size == 0) return;
+
+                    let nbMsg = collection.first();
+                    if (nbMsg.content.startsWith("Your Christmas event")) {
+                        storeReminder(msg.author.id, 'adventure');
+                        remind(User, nbMsg, nbMsg.createdTimestamp, msg.author.username, msg.author.id, 'adventure', false, false, client);
+                    };
+                });
+            } else {
+                const previousTime = user.reminder.tower;
+                if (Date.now() - previousTime < Timer['adventure']) if (reminderActive(msg.author.id, 'adventure')) return;
+
+                const collector = msg.channel.createMessageCollector({ filter, time: 1500 });
+                collector.on('end', async collection => {
+                    if (collection.size == 0) return;
+
+                    let nbMsg = collection.first();
+                    if (nbMsg.content.startsWith("Your Christmas event")) {
+                        storeReminder(msg.author.id, 'adventure');
+                        remind(User, nbMsg, nbMsg.createdTimestamp, msg.author.username, msg.author.id, 'adventure', false, false, client);
                         let xp = user.extras.xp ? user.extras.xp : 0;
                         user.extras.xp = xp + growth(xp, xpInc.taskPassBenefit);
                         user.save()
@@ -306,7 +349,7 @@ client.on('messageCreate', async msg => {
 });
 
 client.on('interactionCreate', async interaction => {
-    // if (interaction.guild.id !== '1008657622691479633') return; uhhm
+    // if (interaction.channel.id !== '1019275740283416667') return; ramen testing
     if (interaction.isCommand()) {
 
         const { commandName, options } = interaction;
@@ -395,7 +438,7 @@ function storeReminder(id, task) {
             mission: false,
             report: false,
             tower: false,
-            adventure: true,
+            adventure: false,
             daily: false,
             weekly: false,
             challenge: false,
@@ -412,18 +455,20 @@ function reminderActive(id, task) {
     return reminderOn[id][task];
 }
 
-await client.login(Details.TOKEN)
+async function donedonadone() {
+    for (let user of (await User.find({}))) {
+        let reminders = user.reminder;
+        for (let reminder of Object.keys(reminders)) {
+            if (!reminders[reminder]) continue;
+            const deltaTime = Date.now() - reminders[reminder];
+            if (deltaTime >= Timer[reminder]) continue;
 
-for (let user of (await User.find({}))) {
-    let reminders = user.reminder;
-    for (let reminder of Object.keys(reminders)) {
-        if (!reminders[reminder]) continue;
-        const deltaTime = Date.now() - reminders[reminder];
-        if (deltaTime >= Timer[reminder]) continue;
-
-        storeReminder(user.id, reminder);
-        const timeLeft = Timer[reminder] - deltaTime - 800;
-        await remind(User, false, reminders[reminder], user.username, user.id, reminder, timeLeft, true, client);
+            storeReminder(user.id, reminder);
+            const timeLeft = Timer[reminder] - deltaTime - 800;
+            await remind(User, false, reminders[reminder], user.username, user.id, reminder, timeLeft, true, client);
+        }
     }
+    console.log('donedonadone');
 }
-console.log('donedonadone');
+
+client.login(Details.TOKEN)

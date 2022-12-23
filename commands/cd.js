@@ -7,7 +7,8 @@ const Timer = {
     challenge: 1799990,
     daily: 71999990,
     vote: 43199990,
-    weekly: 604799990
+    weekly: 604799990,
+    adventure: 21600000
 };
 
 export default async (options, interaction, MessageEmbed, User, reminderOn) => {
@@ -33,8 +34,9 @@ export default async (options, interaction, MessageEmbed, User, reminderOn) => {
         let activities = '';
         let others = ''
         Object.keys(user.reminder).forEach((type, i) => {
-            if (type == 'challenge') return;
+            if (i == 8) type = 'weekly'
             if (i == 4) type = 'challenge';
+            if (i == 7) type = 'adventure'
             const taskReady = (Date.now() - user.reminder[type]) >= Timer[type];
             if (i <= 4) {
                 activities += (taskReady ? '✅'
@@ -42,7 +44,7 @@ export default async (options, interaction, MessageEmbed, User, reminderOn) => {
                     + ` ** ${type}${ra(user.id, type, reminderOn) ? '' : taskReady ? '' : '*'}\n**`;
             } else {
                 others += (taskReady ? '✅'
-                    : '⌛ (' + formatCountDown(user.reminder[type], type)[i < 7 ? 'hours' : 'days'] + ')')
+                    : '⌛ (' + formatCountDown(user.reminder[type], type)[i <= 7 ? 'hours' : 'days'] + ')')
                     + ` ** ${type}${ra(user.id, type, reminderOn) ? '' : taskReady ? '' : '*'}\n**`;
             };
         });
@@ -99,7 +101,8 @@ function formatCountDown(initialTime, type) {
         tower: 6,
         challenge: 30,
         vote: 12,
-        train: 60
+        train: 60,
+        adventure: 6
     }
 
     const milliSeconds = Date.now() - initialTime;

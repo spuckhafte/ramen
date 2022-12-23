@@ -8,7 +8,8 @@ const Timer = {
     challenge: 1799990,
     daily: 71999990,
     vote: 43199990,
-    weekly: 604799990
+    weekly: 604799990,
+    adventure: 21600000
 };
 const delay = 1500;
 
